@@ -1,0 +1,7 @@
+echo ".DS_Store
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/xcuserdata/
+" > .gitignore
