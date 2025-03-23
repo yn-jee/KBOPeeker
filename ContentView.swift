@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var trackOut: Bool = UserDefaults.standard.bool(forKey: "trackOut")
     @State private var trackPointLoss: Bool = UserDefaults.standard.bool(forKey: "trackPointLoss")
     @State private var notification: Bool = UserDefaults.standard.bool(forKey: "notification")
+    @State private var showSettings = false
 
     @Environment(\.presentationMode) var presentationMode
     
@@ -28,54 +29,72 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .center) {
             HStack {
+                Spacer()
+                
                 Text("응원팀: ")
-                Button("\(selectedTeam)") {
+                let teamNames = [
+                    "키움": "키움 히어로즈",
+                    "삼성": "삼성 라이온즈",
+                    "LG": "LG 트윈스",
+                    "두산": "두산 베어스",
+                    "SSG": "SSG 랜더스",
+                    "롯데": "롯데 자이언츠",
+                    "한화": "한화 이글스",
+                    "KIA": "기아 타이거즈",
+                    "KT": "KT 위즈",
+                    "NC": "NC 다이노스"
+                ]
+                Button(teamNames[selectedTeam] ?? selectedTeam) {
                     openTeamPickerWindow()
                 }
+                
+                Spacer()
+                
+                Button(action: {
+                    if showSettings {
+                        savePreferences()
+                        UserDefaults.standard.set(true, forKey: "initialSetupDone")
+                        NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
+                        AppDelegate.instance.startTracking()
+                    }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showSettings.toggle()
+                    }
+                }) {
+                    Text(showSettings ? "설정 저장" : "설정")
+                }
+                
+                Spacer()
+                
             }
             .padding()
 
-            // 이벤트 토글 버튼
-            Text("추적할 이벤트를 선택하세요")
-                .font(.headline)
-            HStack {
+            if showSettings {
+                // 이벤트 토글 버튼
                 VStack {
-                    Toggle("경기 시작", isOn: $trackGameStarted)
-                    Toggle("경기 종료", isOn: $trackGameFinished)
-                }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
-                VStack {
-                    Toggle("안타", isOn: $trackHit)
-                    Toggle("홈런", isOn: $trackHomeRun)
-                    Toggle("득점", isOn: $trackScore)
-                }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
-                VStack {
-                    Toggle("아웃", isOn: $trackOut)
-                    Toggle("실점", isOn: $trackPointLoss)
-                }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
+                    Text("추적할 이벤트를 선택하세요")
+                        .font(.headline)
+                    HStack {
+                        VStack {
+                            Toggle("경기 시작", isOn: $trackGameStarted)
+                            Toggle("경기 종료", isOn: $trackGameFinished)
+                        }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
+                        VStack {
+                            Toggle("안타", isOn: $trackHit)
+                            Toggle("홈런", isOn: $trackHomeRun)
+                            Toggle("득점", isOn: $trackScore)
+                        }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
+                        VStack {
+                            Toggle("아웃", isOn: $trackOut)
+                            Toggle("실점", isOn: $trackPointLoss)
+                        }.frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/)
+                    }
+                    
+                    Toggle("알림 활성화", isOn: $notification)
+                        .padding()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
-            
-            Toggle("알림 활성화", isOn: $notification)
-                .padding()
-            // 설정 저장 버튼
-            Button(action: {
-                savePreferences()
-                UserDefaults.standard.set(true, forKey: "initialSetupDone")
-                presentationMode.wrappedValue.dismiss()
-                NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-            }) {
-                Text("설정 저장")
-            }
-            
-            if showSavedMessage {
-                Text(changeSaved)
-                    .padding()
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.5), value: showSavedMessage)
-                    .frame(height: 30)
-            } else {
-                Text("").frame(height: 30)
-            }
-            
         }
         .padding()
         .frame(width: 400)
@@ -90,14 +109,25 @@ struct ContentView: View {
         let pickerView = TeamPickerView(selectedTeam: $selectedTeam)
         let hostingController = NSHostingController(rootView: pickerView)
 
+
         let window = NSWindow(contentViewController: hostingController)
-        window.setContentSize(NSSize(width: 250, height: 300))
+
+        // 자동 사이즈 조정
+        window.setFrameAutosaveName("TeamPickerWindow")
+        window.contentView?.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        window.contentView?.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        // 이 줄이 핵심
+        window.contentViewController = hostingController
+        hostingController.view.needsLayout = true
+        hostingController.view.layoutSubtreeIfNeeded()
+
+        let fittingSize = hostingController.view.fittingSize
+        window.setContentSize(fittingSize)
+
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         window.title = "응원팀 선택"
-
-        lazy var statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-
         window.level = .floating
         window.makeKeyAndOrderFront(nil)
     }
@@ -116,8 +146,6 @@ struct ContentView: View {
         UserDefaults.standard.set(trackPointLoss, forKey: "trackPointLoss")
         UserDefaults.standard.set(notification, forKey: "notification")
 
-        changeSaved = "변경사항이 저장되었습니다."
-        
         print("Saved Preferences:")
         print("Team: \(UserDefaults.standard.string(forKey: "selectedTeam") ?? "")")
         print("경기 시작: \(UserDefaults.standard.bool(forKey: "trackGameStarted"))")
@@ -128,17 +156,6 @@ struct ContentView: View {
         print("아웃: \(UserDefaults.standard.bool(forKey: "trackOut"))")
         print("실점: \(UserDefaults.standard.bool(forKey: "trackPointLoss"))")
         print("알림: \(UserDefaults.standard.bool(forKey: "notification"))")
-
-        withAnimation {
-            showSavedMessage = true
-        }
-
-        // 3초 뒤 페이드 아웃
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            withAnimation {
-                showSavedMessage = false
-            }
-        }
     }
 }
 
@@ -146,7 +163,18 @@ struct TeamPickerView: View {
     @Binding var selectedTeam: String
     @Environment(\.dismiss) var dismiss
 
-    let teams = ["기아 타이거즈", "두산 베어스", "롯데 자이언츠", "삼성 라이온즈", "키움 히어로즈", "한화 이글스", "KT 위즈", "LG 트윈스", "NC 다이노스", "SSG 랜더스"]
+    let teams = [
+        "키움": "키움 히어로즈",
+        "삼성": "삼성 라이온즈",
+        "LG": "LG 트윈스",
+        "두산": "두산 베어스",
+        "SSG": "SSG 랜더스",
+        "롯데": "롯데 자이언츠",
+        "한화": "한화 이글스",
+        "KIA": "기아 타이거즈",
+        "KT": "KT 위즈",
+        "NC": "NC 다이노스"
+    ]
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -155,8 +183,8 @@ struct TeamPickerView: View {
                 .padding(.bottom)
 
             Picker(selection: $selectedTeam, label: Text("")) {
-                ForEach(teams, id: \.self) { team in
-                    Text(team).tag(team)
+                ForEach(teams.keys.sorted(), id: \.self) { key in
+                    Text(teams[key]!).tag(key)
                 }
             }
             .pickerStyle(.inline)
@@ -176,6 +204,7 @@ struct TeamPickerView: View {
                     print("아웃: \(UserDefaults.standard.bool(forKey: "trackOut"))")
                     print("실점: \(UserDefaults.standard.bool(forKey: "trackPointLoss"))")
                     print("알림: \(UserDefaults.standard.bool(forKey: "notification"))")
+                    AppDelegate.instance.startTracking()
                     dismiss()
                 }
             }

@@ -5,7 +5,6 @@
 //
 //  Created by 나윤지 on 3/21/25.
 //
-
 import Foundation
 import WebKit
 import SwiftSoup
@@ -15,6 +14,11 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
     private var gameURL: String
     private var webView: WKWebView?
     private var timer: Timer?
+
+    private(set) var selectedTeamName: String = ""
+    private(set) var opponentTeamName: String = ""
+    private(set) var currentInning: String = ""
+    private(set) var teamScores: [String: Int] = [:]
 
     var onTeamDetected: ((_ isHome: Bool, _ opponent: String) -> Void)?
     var onEventDetected: ((_ eventText: String) -> Void)?
@@ -32,9 +36,16 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
             webView?.load(URLRequest(url: url))
         }
 
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
             self.webView?.reload()
         }
+    }
+
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+        webView?.navigationDelegate = nil
+        webView = nil
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -53,30 +64,32 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
         do {
             let doc = try SwiftSoup.parse(html)
 
-            // 홈/원정팀 판단
-            if let awayTeamElement = try doc.select("span.team_vs.team_vs1 span.txt_team").first(),
-               let homeTeamElement = try doc.select("span.team_vs.team_vs2 span.txt_team").first(),
-               let selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") {
+            guard let selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") else { return }
+            self.selectedTeamName = selectedTeam
 
-                let away = try awayTeamElement.text()
-                let home = try homeTeamElement.text()
+            let team1 = try doc.select("div.info_team.team_vs1 span.tit_team").first()?.text() ?? ""
+            let team2 = try doc.select("div.info_team.team_vs2 span.tit_team").first()?.text() ?? ""
 
-                let isHome = (home == selectedTeam)
-                let opponent = isHome ? away : home
-                onTeamDetected?(isHome, opponent)
+            self.opponentTeamName = (team1 == selectedTeam) ? team2 : team1
+
+            let score1 = Int(try doc.select("div.info_team.team_vs1 span.num_team").first()?.text() ?? "") ?? 0
+            let score2 = Int(try doc.select("div.info_team.team_vs2 span.num_team").first()?.text() ?? "") ?? 0
+
+            teamScores[team1] = score1
+            teamScores[team2] = score2
+
+            currentInning = try doc.select("span.txt_status").first()?.text() ?? ""
+
+            print("응원팀: \(selectedTeamName), 상대팀: \(opponentTeamName)")
+            print("스코어 - \(team1): \(score1), \(team2): \(score2)")
+            print("현재 이닝: \(currentInning)")
+
+            if currentInning.contains("경기종료") {
+                print("경기가 종료되었습니다.")
+                self.stop()
+                return
             }
-
-            // 이벤트 감지
-            let events = try doc.select(".item_sms")
-            for event in events {
-                let text = try event.text()
-                onEventDetected?(text)
-
-                if text.contains("경기종료") {
-                    sendNotification(title: "경기 종료", body: "오늘 경기가 종료되었습니다.")
-                }
-            }
-
+            
         } catch {
             print("HTML 파싱 오류: \(error)")
         }

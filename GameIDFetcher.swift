@@ -80,7 +80,7 @@ import Foundation
 import WebKit
 import SwiftSoup
 
-class GameInfoFetcher: NSObject, WKNavigationDelegate {
+class GameIDFetcher: NSObject, WKNavigationDelegate {
     private var browseView: WKWebView?
     private var selectedTeam: String = ""
     private var completionHandler: ((Int?) -> Void)?
@@ -122,17 +122,21 @@ class GameInfoFetcher: NSObject, WKNavigationDelegate {
                 dateFormatter.dateFormat = "yyyyMMdd"
                 let today = dateFormatter.string(from: Date())
 
+//                let today = "20240622"
+                
                 let allRows = try document.select("tr")
                 let rows = try allRows.filter { try $0.attr("data-date") == today }
 
                 print("오늘 날짜 문자열: \(today)")
                 print("필터링된 tr 개수: \(rows.count)")
+                print("팀: \(self.selectedTeam)")
 
                 for row in rows {
                     let homeTeam = try row.select("div.info_team.team_home a span.txt_team").first()?.text() ?? ""
                     let awayTeam = try row.select("div.info_team.team_away a span.txt_team").first()?.text() ?? ""
 
                     if homeTeam == self.selectedTeam || awayTeam == self.selectedTeam {
+                        // a 태그 있는 경우 (정상 경기)
                         if let link = try row.select("td.td_btn a.link_game").first(),
                            let href = try? link.attr("href"),
                            href.contains("/match/"),
@@ -140,6 +144,14 @@ class GameInfoFetcher: NSObject, WKNavigationDelegate {
                            let gameId = Int(gameIdStr) {
                             print("Game ID 추출됨: \(gameId)")
                             self.completionHandler?(gameId)
+                            return
+                        }
+
+                        // a 태그가 없고 '경기취소' 텍스트 있는 경우
+                        let tdText = try row.select("td.td_btn").text()
+                        if tdText.contains("경기취소") {
+                            print("경기가 없습니다: 경기취소")
+                            self.completionHandler?(nil)
                             return
                         }
                     }
