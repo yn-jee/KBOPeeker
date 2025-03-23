@@ -28,6 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.instance = self
+        statusBarItem.button?.title = ""
         statusBarItem.button?.image = NSImage(named: NSImage.Name("baseball"))
         statusBarItem.button?.imagePosition = .imageLeading
         statusBarItem.menu = menu.createMenu()
@@ -72,9 +73,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self.crawler?.onTeamDetected = { isHome, opponent in
                         print(isHome ? "홈 경기" : "원정 경기")
                         print("상대팀: \(opponent)")
-                    }
-                    self.crawler?.onEventDetected = { eventText in
-                        print("이벤트 감지됨: \(eventText)")
+                        DispatchQueue.main.async {
+                            self.statusBarItem.button?.title = ""
+                            self.statusBarItem.button?.image = NSImage(named: NSImage.Name("baseball"))
+                        }
+                        if let crawler = self.crawler {
+                            print("\(crawler.selectedTeamName) 대 \(crawler.opponentTeamName)")
+                            let myScore = crawler.teamScores[crawler.selectedTeamName] ?? 0
+                            let opponentScore = crawler.teamScores[crawler.opponentTeamName] ?? 0
+                            let scoreText = " \(myScore) : \(opponentScore) "  // 공백으로 여백 줘서 강조
+                            self.statusBarItem.button?.font = NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+                            self.statusBarItem.button?.title = scoreText
+                            print(scoreText)
+
+                            DispatchQueue.main.async {
+                                self.statusBarItem.button?.image = nil
+                                self.statusBarItem.button?.title = scoreText
+
+                                // 5초 후 기본 이미지로 복원
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                                    self.statusBarItem.button?.title = ""
+                                    self.statusBarItem.button?.image = NSImage(named: NSImage.Name("baseball"))
+                                }
+                            }
+                        }
                     }
                     self.crawler?.start()
                 } else {
