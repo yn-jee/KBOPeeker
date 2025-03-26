@@ -41,36 +41,39 @@ struct ContentView: View {
     @State private var showSettings = false
     
     // 경기 정보 관련 변수
-    @State private var isFirstBaseOccupied = false
+    @State private var homeScore = 0
+    @State private var awayScore = 0
+    @State private var isFirstBaseOccupied = true
     @State private var isSecondBaseOccupied = false
     @State private var isThirdBaseOccupied = false
-    @State private var isTopInning = false
-    @State private var inningNumber = 0
-    @State private var balls = 0
-    @State private var strikes = 0
-    @State private var outs = 0
+    @State private var isTopInning = true
+    @State private var inningNumber = 5
+    @State private var ballCount = 2
+    @State private var strikeCount = 1
+    @State private var outCount = 0
     
 
     var body: some View {
         VStack(alignment: .center) {
             HStack {
-                Spacer()
-
-                Text("응원팀: ")
-                Button(action: {
-                    if showTeamPicker {
-                        savePreferences()
-                        UserDefaults.standard.set(true, forKey: "initialSetupDone")
-                        NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-                        AppDelegate.instance.startTracking()
+                HStack {
+                    Text("응원팀: ")
+                    Button(action: {
+                        if showTeamPicker {
+                            savePreferences()
+                            UserDefaults.standard.set(true, forKey: "initialSetupDone")
+                            NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
+                            AppDelegate.instance.startTracking()
+                        }
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showTeamPicker.toggle()
+                        }
+                    }) {
+                        Text(showTeamPicker ? "팀 저장" : (teamNames[selectedTeam] ?? selectedTeam))
                     }
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showTeamPicker.toggle()
-                    }
-                }) {
-                    Text(showTeamPicker ? "팀 저장" : (teamNames[selectedTeam] ?? selectedTeam))
                 }
-
+//                .frame(width: 200)
+//
                 Spacer()
 
                 Button(action: {
@@ -86,11 +89,9 @@ struct ContentView: View {
                 }) {
                     Text(showSettings ? "설정 저장" : "설정")
                 }
-
-                Spacer()
             }
             .padding(.top, 10)
-            
+           
             // 설정창
             ScrollView {
                 if showTeamPicker {
@@ -104,10 +105,9 @@ struct ContentView: View {
                         }
                         .pickerStyle(.inline)
                         .frame(width: 200)
-                        .padding(.top, 10)
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))
-                    .padding(.bottom, 20)
+                    .padding([.top, .bottom], 10)
                 }
 
                 if showSettings {
@@ -138,64 +138,117 @@ struct ContentView: View {
             }
             
             // 경기 정보
-            HStack() {
-                // 이닝 + 베이스 정보
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .frame(width: 30, height: 30)
-                        .rotationEffect(.degrees(45))
-                        .opacity(isSecondBaseOccupied ? 1 : 0.3)
-                    HStack(spacing: 2) {
-                        Rectangle()
-                            .frame(width: 30, height: 30)
-                            .rotationEffect(.degrees(45))
-                            .opacity(isThirdBaseOccupied ? 1 : 0.3)
-                        Spacer().frame(width: 10)
-                        Rectangle()
-                            .frame(width: 30, height: 30)
-                            .rotationEffect(.degrees(45))
-                            .opacity(isFirstBaseOccupied ? 1 : 0.3)
+            HStack(alignment: .center) {
+                VStack(spacing: 6) {
+                    HStack {
+                        Text("HOME")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("\(homeScore)")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                    HStack {
+                        Text("AWAY")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("\(awayScore)")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .bold))
                     }
                 }
+                .frame(width: 65)
+
+                // 이닝
+                VStack(spacing: 4) {
+                    if isTopInning {
+                        Text("▲")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    Text("\(inningNumber)")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.white)
+                    if !isTopInning {
+                        Text("▼")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .frame(width: 20)
+                
+                // 베이스 정보
+                ZStack {
+                    ZStack {
+                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(20), spacing: 2), count: 2), spacing: 2) {
+                            Rectangle()
+                                .frame(width: 20, height: 20)
+                                .opacity(isThirdBaseOccupied ? 1 : 0.3) // top-left
+
+                            Rectangle()
+                                .frame(width: 20, height: 20)
+                                .opacity(isSecondBaseOccupied ? 1 : 0.3) // top-right
+                            
+                            Color.clear // bottom-left (비워둠)
+
+                            Rectangle()
+                                .frame(width: 20, height: 20)
+                                .opacity(isFirstBaseOccupied ? 1 : 0.3) // bottom-right
+                        }
+                        .rotationEffect(.degrees(-45)) // 전체 그리드를 회전
+                    }
+    //                .padding([.top, .leading, .trailing], 20)
+                    .padding(.top, 20)
+                    .frame(width: 50, height: 50) // 전체 프레임 조절
+                }
+                .frame(width: 60)
                 
                 Spacer()
-
+                
                 // BSO 표시
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text("B")
                             .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
+                            .frame(width: 15)
                         ForEach(0..<3) { i in
                             Circle()
-                                .fill(i < balls ? Color.green : Color.gray)
+                                .fill(i < ballCount ? Color.green : Color.gray)
                                 .frame(width: 10, height: 10)
                         }
                     }
+                    .frame(height: 12)
                     HStack {
                         Text("S")
                             .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
+                            .frame(width: 15)
                         ForEach(0..<2) { i in
                             Circle()
-                                .fill(i < strikes ? Color.yellow : Color.gray)
+                                .fill(i < strikeCount ? Color.yellow : Color.gray)
                                 .frame(width: 10, height: 10)
                         }
                     }
+                    .frame(height: 12)
                     HStack {
                         Text("O")
                             .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
+                            .frame(width: 15)
                         ForEach(0..<2) { i in
                             Circle()
-                                .fill(i < outs ? Color.red : Color.gray)
+                                .fill(i < outCount ? Color.red : Color.gray)
                                 .frame(width: 10, height: 10)
                         }
                     }
+                    .frame(height: 12)
                 }
                 
                 Spacer()
             }
+            .padding([.top, .bottom], 10)
+            
         }
         .frame(width: 200)
     }
