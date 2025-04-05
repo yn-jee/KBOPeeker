@@ -8,21 +8,25 @@
 import Foundation
 
 class SettingViewModel: ObservableObject {
+    static let shared = SettingViewModel()
+
     @Published var selectedTeam: String
     @Published var trackGameStarted: Bool
     @Published var trackGameFinished: Bool
     @Published var trackHit: Bool
+    @Published var trackBB: Bool
     @Published var trackHomeRun: Bool
     @Published var trackScore: Bool
     @Published var trackOut: Bool
     @Published var trackPointLoss: Bool
     @Published var notification: Bool
 
-    init() {
+    private init() {
         selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") ?? "키움 히어로즈"
         trackGameStarted = UserDefaults.standard.bool(forKey: "trackGameStarted")
         trackGameFinished = UserDefaults.standard.bool(forKey: "trackGameFinished")
         trackHit = UserDefaults.standard.bool(forKey: "trackHit")
+        trackBB = UserDefaults.standard.bool(forKey: "trackBB")
         trackHomeRun = UserDefaults.standard.bool(forKey: "trackHomeRun")
         trackScore = UserDefaults.standard.bool(forKey: "trackScore")
         trackOut = UserDefaults.standard.bool(forKey: "trackOut")
@@ -35,6 +39,7 @@ class SettingViewModel: ObservableObject {
         UserDefaults.standard.set(trackGameStarted, forKey: "trackGameStarted")
         UserDefaults.standard.set(trackGameFinished, forKey: "trackGameFinished")
         UserDefaults.standard.set(trackHit, forKey: "trackHit")
+        UserDefaults.standard.set(trackBB, forKey: "trackBB")
         UserDefaults.standard.set(trackHomeRun, forKey: "trackHomeRun")
         UserDefaults.standard.set(trackScore, forKey: "trackScore")
         UserDefaults.standard.set(trackOut, forKey: "trackOut")

@@ -10,7 +10,7 @@ import CoreData
 import Combine
 
 let teamNames = [
-    "KIA": "기아 타이거즈",
+    "KIA": "KIA 타이거즈",
     "두산": "두산 베어스",
     "롯데": "롯데 자이언츠",
     "삼성": "삼성 라이온즈",
@@ -23,180 +23,235 @@ let teamNames = [
 ]
 
 struct ContentView: View {
-    //    // 상태 관련 변수
-    //    @State private var selectedTeam: String = UserDefaults.standard.string(forKey: "selectedTeam") ?? "키움 히어로즈"
-    //    @State private var trackGameStarted: Bool = UserDefaults.standard.bool(forKey: "trackGameStarted")
-    //    @State private var trackGameFinished: Bool = UserDefaults.standard.bool(forKey: "trackGameFinished")
-    //    @State private var trackHit: Bool = UserDefaults.standard.bool(forKey: "trackHit")
-    //    @State private var trackHomeRun: Bool = UserDefaults.standard.bool(forKey: "trackHomeRun")
-    //    @State private var trackScore: Bool = UserDefaults.standard.bool(forKey: "trackScore")
-    //    @State private var trackOut: Bool = UserDefaults.standard.bool(forKey: "trackOut")
-    //    @State private var trackPointLoss: Bool = UserDefaults.standard.bool(forKey: "trackPointLoss")
-    //    @State private var notification: Bool = UserDefaults.standard.bool(forKey: "notification")
-    //    
-    //    // 설정 관련 변수
-    //    @Environment(\.presentationMode) var presentationMode
-    //    @State private var changeSaved = ""
-    //    @State private var showSavedMessage = false
-    //    @State private var showTeamPicker = false
-    //    @State private var showSettings = false
-    
     @ObservedObject var viewModel: SettingViewModel
     @ObservedObject var gameState = GameStateModel.shared
     
-    
     var body: some View {
-        VStack(alignment: .center) {
-            //            HStack {
-            //                HStack {
-            //                    Text("응원팀: ")
-            //                    Button(action: {
-            //                        if showTeamPicker {
-            //                            savePreferences()
-            //                            UserDefaults.standard.set(true, forKey: "initialSetupDone")
-            //                            NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-            //                            AppDelegate.instance.startTracking()
-            //                        }
-            //                        withAnimation(.easeInOut(duration: 0.3)) {
-            //                            showTeamPicker.toggle()
-            //                        }
-            //                    }) {
-            //                        Text(showTeamPicker ? "팀 저장" : (teamNames[selectedTeam] ?? selectedTeam))
-            //                    }
-            //                }
-            ////                .frame(width: 200)
-            ////
-            //                Spacer()
-            //
-            //                Button(action: {
-            //                    if showSettings {
-            //                        savePreferences()
-            //                        UserDefaults.standard.set(true, forKey: "initialSetupDone")
-            //                        NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-            //                        AppDelegate.instance.startTracking()
-            //                    }
-            //                    withAnimation(.easeInOut(duration: 0.3)) {
-            //                        showSettings.toggle()
-            //                    }
-            //                }) {
-            //                    Text(showSettings ? "설정 저장" : "설정")
-            //                }
-            //            }
-            
-            Text("\(teamNames[viewModel.selectedTeam] ?? "우리 팀") 화이팅!")
-                .padding(.top, 10)
-                .font(.system(size: 12, weight: .bold))
-            
-            // 경기 정보
-            HStack(alignment: .center) {
-                VStack(spacing: 6) {
-                    HStack {
-                        Text("\(gameState.selectedTeamName)")
-                            .font(.system(size: 13, weight: .bold))
-                        Text("\(gameState.teamScores[gameState.selectedTeamName] ?? 0)")
-                            .font(.system(size: 16, weight: .bold))
-                    }
-                    HStack {
-                        Text("\(gameState.opponentTeamName)")
-                            .font(.system(size: 13, weight: .bold))
-                        Text("\(gameState.teamScores[gameState.opponentTeamName] ?? 0)")
-                            .font(.system(size: 16, weight: .bold))
-                    }
+        if gameState.isFetchingGame {
+                VStack {
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(0.6)
+                    Text("경기를 찾는 중...")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding()
+                    Spacer()
                 }
-                .frame(width: 65)
-                
-                let burgundy = Color(#colorLiteral(red: 0.4392156899, green: 0.01176470611, blue: 0.1921568662, alpha: 1))
-                // 이닝
-                VStack(spacing: 4) {
-                    if gameState.isTopInning {
-                        Text("▲")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(burgundy)
-                    }
-                    Text("\(gameState.inningNumber)")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(burgundy)
-                    if !gameState.isTopInning {
-                        Text("▼")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(burgundy)
-                    }
+                .frame(width: 200)
+        } else if AppDelegate.instance?.gameURL == nil {
+            if AppDelegate.instance?.hasExceededMaxAttempts == true {
+                VStack {
+                    Spacer()
+                    Text("경기를 찾지 못했습니다.\n앱을 종료 후 다시 시도해주세요.")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding()
+                    Spacer()
                 }
-                .frame(width: 20)
-                
-                // 베이스 정보
-                ZStack {
-                    ZStack {
-                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(20), spacing: 2), count: 2), spacing: 2) {
-                            Rectangle()
-                                .frame(width: 20, height: 20)
-                                .opacity(gameState.isThirdBaseOccupied ? 1 : 0.3) // top-left
-                            
-                            Rectangle()
-                                .frame(width: 20, height: 20)
-                                .opacity(gameState.isSecondBaseOccupied ? 1 : 0.3) // top-right
-                            
-                            Color.clear // bottom-left (비워둠)
-                            
-                            Rectangle()
-                                .frame(width: 20, height: 20)
-                                .opacity(gameState.isFirstBaseOccupied ? 1 : 0.3) // bottom-right
-                        }
-                        .rotationEffect(.degrees(-45)) // 전체 그리드를 회전
-                    }
-                    //                .padding([.top, .leading, .trailing], 20)
-                    .padding(.top, 20)
-                    .frame(width: 50, height: 50) // 전체 프레임 조절
+                .frame(width: 200)
+            } else {
+                VStack {
+                    Spacer()
+                    ProgressView() // 기본 로딩 인디케이터
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(0.6)
+                    Text("경기를 찾는 중...")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding()
+                    Spacer()
                 }
-                .frame(width: 60)
-                
+                .frame(width: 200)
+            }
+        } else if gameState.currentInning.contains("경기 전") {
+            VStack {
                 Spacer()
-                
-                // BSO 표시
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("B")
-                            .foregroundColor(.white)
-                            .font(.system(size: 13, weight: .bold))
-                            .frame(width: 15)
-                        ForEach(0..<3) { i in
-                            Circle()
-                                .fill(i < gameState.ballCount ? Color.green : Color.gray)
-                                .frame(width: 10, height: 10)
-                        }
-                    }
-                    .frame(height: 12)
-                    HStack {
-                        Text("S")
-                            .foregroundColor(.white)
-                            .font(.system(size: 13, weight: .bold))
-                            .frame(width: 15)
-                        ForEach(0..<2) { i in
-                            Circle()
-                                .fill(i < gameState.strikeCount ? Color.yellow : Color.gray)
-                                .frame(width: 10, height: 10)
-                        }
-                    }
-                    .frame(height: 12)
-                    HStack {
-                        Text("O")
-                            .foregroundColor(.white)
-                            .font(.system(size: 13, weight: .bold))
-                            .frame(width: 15)
-                        ForEach(0..<2) { i in
-                            Circle()
-                                .fill(i < gameState.outCount ? Color.red : Color.gray)
-                                .frame(width: 10, height: 10)
-                        }
-                    }
-                    .frame(height: 12)
-                }
-                
+                Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(.bottom, 8)
+                Text("경기 시작 전입니다.")
+                    .multilineTextAlignment(.center)
+                    .font(.subheadline)
+                    .padding()
                 Spacer()
             }
-            .padding([.top, .bottom], 10)
-            
+            .frame(width: 200)
+        } else if gameState.currentInning.contains("경기취소") {
+            VStack {
+                Spacer()
+                Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(.bottom, 8)
+                Text("오늘 경기는 취소되었습니다.")
+                    .multilineTextAlignment(.center)
+                    .font(.subheadline)
+                    .padding()
+                Spacer()
+            }
+            .frame(width: 200)
+        } else if gameState.currentInning.contains("경기종료") {
+            VStack {
+                Spacer()
+                Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(.bottom, 8)
+                Text("\(gameState.teamScores[gameState.selectedTeamName] ?? 0) : \(gameState.teamScores[gameState.opponentTeamName] ?? 0)")
+                    .multilineTextAlignment(.center)
+                    .font(.title2)
+                    .bold()
+                    .padding(.bottom, 8)
+                Text("경기가 종료되었습니다.")
+                    .multilineTextAlignment(.center)
+                    .font(.subheadline)
+                    .padding()
+                Spacer()
+            }
+            .frame(width: 200)
+        } else {
+            VStack(alignment: .center) {
+                Text("\(teamNames[viewModel.selectedTeam] ?? "우리 팀") 화이팅!")
+                    .padding(.top, 10)
+                    .font(.system(size: 12, weight: .bold))
+                Text("\(gameState.stadiumName)")
+                // 경기 정보
+                HStack(alignment: .center) {
+                    Spacer()
+                    
+                    VStack(spacing: 6) {
+                        if gameState.isHome {
+                            HStack {
+                                Text("\(gameState.opponentTeamName)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .frame(width: 30, alignment: .leading)
+                                Text("\(gameState.teamScores[gameState.opponentTeamName] ?? 0)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .frame(width: 22)
+                            }
+                            HStack {
+                                Text("\(gameState.selectedTeamName)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .frame(width: 30, alignment: .leading)
+                                Text("\(gameState.teamScores[gameState.selectedTeamName] ?? 0)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .frame(width: 22)
+                            }
+                        } else {
+                            HStack {
+                                Text("\(gameState.selectedTeamName)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .frame(width: 30, alignment: .leading)
+                                Text("\(gameState.teamScores[gameState.selectedTeamName] ?? 0)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .frame(width: 22)
+                            }
+                            HStack {
+                                Text("\(gameState.opponentTeamName)")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .frame(width: 30, alignment: .leading)
+                                Text("\(gameState.teamScores[gameState.opponentTeamName] ?? 0)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .frame(width: 22)
+                            }
+                        }
+                    }
+                    
+                    let burgundy = Color(#colorLiteral(red: 0.4392156899, green: 0.01176470611, blue: 0.1921568662, alpha: 1))
+                    // 이닝
+                    VStack(spacing: 4) {
+                        if gameState.isTopInning {
+                            Text("▲")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(burgundy)
+                        }
+                        Text("\(gameState.inningNumber)")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(burgundy)
+                        if !gameState.isTopInning {
+                            Text("▼")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(burgundy)
+                        }
+                    }
+                    .frame(width: 20)
+                    
+                    Spacer()
+                    
+                    // 베이스 정보
+                    ZStack {
+                        ZStack {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(20), spacing: 2), count: 2), spacing: 2) {
+                                Rectangle()
+                                    .frame(width: 20, height: 20)
+                                    .opacity(gameState.isThirdBaseOccupied ? 1 : 0.3) // top-left
+                                
+                                Rectangle()
+                                    .frame(width: 20, height: 20)
+                                    .opacity(gameState.isSecondBaseOccupied ? 1 : 0.3) // top-right
+                                
+                                Color.clear // bottom-left (비워둠)
+                                
+                                Rectangle()
+                                    .frame(width: 20, height: 20)
+                                    .opacity(gameState.isFirstBaseOccupied ? 1 : 0.3) // bottom-right
+                            }
+                            .rotationEffect(.degrees(-45)) // 전체 그리드를 회전
+                        }
+                        .padding(.top, 15)
+                        .frame(width: 50, height: 50) // 전체 프레임 조절
+                    }
+                    .frame(width: 60)
+                    
+                    Spacer()
+                    
+                    // BSO 표시
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("B")
+                                .font(.system(size: 13, weight: .bold))
+                                .frame(width: 15)
+                            ForEach(0..<3) { i in
+                                Circle()
+                                    .fill(i < gameState.ballCount ? Color.green : Color.gray)
+                                    .frame(width: 10, height: 10)
+                            }
+                        }
+                        .frame(height: 12)
+                        HStack {
+                            Text("S")
+                                .font(.system(size: 13, weight: .bold))
+                                .frame(width: 15)
+                            ForEach(0..<2) { i in
+                                Circle()
+                                    .fill(i < gameState.strikeCount ? Color.yellow : Color.gray)
+                                    .frame(width: 10, height: 10)
+                            }
+                        }
+                        .frame(height: 12)
+                        HStack {
+                            Text("O")
+                                .font(.system(size: 13, weight: .bold))
+                                .frame(width: 15)
+                            ForEach(0..<2) { i in
+                                Circle()
+                                    .fill(i < gameState.outCount ? Color.red : Color.gray)
+                                    .frame(width: 10, height: 10)
+                            }
+                        }
+                        .frame(height: 12)
+                    }
+                    .padding(.leading, 5)
+                    
+                    Spacer()
+                }
+                .padding([.top, .bottom], 10)
+                
+            }
+            .frame(width: 200)
         }
-        .frame(width: 200)
     }
 }

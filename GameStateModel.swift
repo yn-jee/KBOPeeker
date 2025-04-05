@@ -10,7 +10,8 @@ import Combine
 
 class GameStateModel: ObservableObject {
     static let shared = GameStateModel() // 싱글톤
-
+    @Published var isFetchingGame: Bool = false
+    
     @Published var isTopInning: Bool = true
     @Published var inningNumber: Int = 1
 
@@ -22,8 +23,13 @@ class GameStateModel: ObservableObject {
     @Published var strikeCount: Int = 0
     @Published var outCount: Int = 0
 
-    @Published var selectedTeamName: String = ""
+    var selectedTeamName: String {
+        get { SettingViewModel.shared.selectedTeam }
+        set { SettingViewModel.shared.selectedTeam = newValue }
+    }
+    @Published var isHome: Bool = false
     @Published var opponentTeamName: String = ""
+    @Published var stadiumName: String = ""
     @Published var currentInning: String = ""
     @Published var teamScores: [String: Int] = [:]
 
