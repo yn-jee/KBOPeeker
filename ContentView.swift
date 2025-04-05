@@ -26,31 +26,74 @@ struct ContentView: View {
     @ObservedObject var viewModel: SettingViewModel
     @ObservedObject var gameState = GameStateModel.shared
     
+    
     var body: some View {
         if gameState.isFetchingGame {
-                VStack {
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .scaleEffect(0.6)
-                    Text("경기를 찾는 중...")
-                        .multilineTextAlignment(.center)
-                        .font(.headline)
-                        .padding()
-                    Spacer()
+            VStack {
+                Spacer()
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .scaleEffect(0.6)
+                Text("경기를 찾는 중...")
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding()
+                Spacer()
+            }
+            .frame(width: 200)
+            .onAppear {
+                    DispatchQueue.main.async {
+                        if let button = AppDelegate.instance?.statusBarItem.button {
+                            let image = NSImage(named: NSImage.Name("baseball"))
+                            image?.isTemplate = true
+                            button.image = image
+                            button.title = ""
+                        }
+                    }
                 }
-                .frame(width: 200)
-        } else if AppDelegate.instance?.gameURL == nil {
+        }
+        else if AppDelegate.instance?.gameURL == nil {
             if AppDelegate.instance?.hasExceededMaxAttempts == true {
+
                 VStack {
                     Spacer()
-                    Text("경기를 찾지 못했습니다.\n앱을 종료 후 다시 시도해주세요.")
+                    Text("경기를 찾지 못했습니다.\n\n설정 확인 후 다시 시도해주세요.")
                         .multilineTextAlignment(.center)
                         .font(.headline)
                         .padding()
                     Spacer()
                 }
                 .frame(width: 200)
+                .onAppear {
+                        DispatchQueue.main.async {
+                            if let button = AppDelegate.instance?.statusBarItem.button {
+                                let image = NSImage(named: NSImage.Name("baseball"))
+                                image?.isTemplate = true
+                                button.image = image
+                                button.title = ""
+                            }
+                        }
+                    }
+            } else if gameState.isCancelled {
+                VStack {
+                    Spacer()
+                    Text("오늘 \(teamNames[viewModel.selectedTeam] ?? viewModel.selectedTeam) 경기는 취소되었습니다.")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding()
+                    Spacer()
+                }
+                .frame(width: 200)
+                .onAppear {
+                        DispatchQueue.main.async {
+                            if let button = AppDelegate.instance?.statusBarItem.button {
+                                let image = NSImage(named: NSImage.Name("baseball"))
+                                image?.isTemplate = true
+                                button.image = image
+                                button.title = ""
+                            }
+                        }
+                    }
             } else {
                 VStack {
                     Spacer()
@@ -64,8 +107,19 @@ struct ContentView: View {
                     Spacer()
                 }
                 .frame(width: 200)
+                .onAppear {
+                        DispatchQueue.main.async {
+                            if let button = AppDelegate.instance?.statusBarItem.button {
+                                let image = NSImage(named: NSImage.Name("baseball"))
+                                image?.isTemplate = true
+                                button.image = image
+                                button.title = ""
+                            }
+                        }
+                    }
             }
-        } else if gameState.currentInning.contains("경기 전") {
+        }
+        else if gameState.currentInning.contains("경기 전") {
             VStack {
                 Spacer()
                 Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
@@ -79,21 +133,42 @@ struct ContentView: View {
                 Spacer()
             }
             .frame(width: 200)
-        } else if gameState.currentInning.contains("경기취소") {
+            .onAppear {
+                    DispatchQueue.main.async {
+                        if let button = AppDelegate.instance?.statusBarItem.button {
+                            let image = NSImage(named: NSImage.Name("baseball"))
+                            image?.isTemplate = true
+                            button.image = image
+                            button.title = ""
+                        }
+                    }
+                }
+        }
+        else if gameState.currentInning.contains("경기취소") {
             VStack {
                 Spacer()
                 Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
                     .multilineTextAlignment(.center)
                     .font(.headline)
                     .padding(.bottom, 8)
-                Text("오늘 경기는 취소되었습니다.")
-                    .multilineTextAlignment(.center)
+                Text("오늘 \(teamNames[viewModel.selectedTeam] ?? viewModel.selectedTeam) 경기는 취소되었습니다.")          .multilineTextAlignment(.center)
                     .font(.subheadline)
                     .padding()
                 Spacer()
             }
             .frame(width: 200)
-        } else if gameState.currentInning.contains("경기종료") {
+            .onAppear {
+                    DispatchQueue.main.async {
+                        if let button = AppDelegate.instance?.statusBarItem.button {
+                            let image = NSImage(named: NSImage.Name("baseball"))
+                            image?.isTemplate = true
+                            button.image = image
+                            button.title = ""
+                        }
+                    }
+                }
+        }
+        else if gameState.currentInning.contains("경기종료") {
             VStack {
                 Spacer()
                 Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
@@ -112,7 +187,8 @@ struct ContentView: View {
                 Spacer()
             }
             .frame(width: 200)
-        } else {
+        }
+        else {
             VStack(alignment: .center) {
                 Text("\(teamNames[viewModel.selectedTeam] ?? "우리 팀") 화이팅!")
                     .padding(.top, 10)

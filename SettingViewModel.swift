@@ -19,7 +19,7 @@ class SettingViewModel: ObservableObject {
     @Published var trackScore: Bool
     @Published var trackOut: Bool
     @Published var trackPointLoss: Bool
-    @Published var notification: Bool
+    @Published var alertTime: Int
 
     private init() {
         selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") ?? "키움 히어로즈"
@@ -31,7 +31,7 @@ class SettingViewModel: ObservableObject {
         trackScore = UserDefaults.standard.bool(forKey: "trackScore")
         trackOut = UserDefaults.standard.bool(forKey: "trackOut")
         trackPointLoss = UserDefaults.standard.bool(forKey: "trackPointLoss")
-        notification = UserDefaults.standard.bool(forKey: "notification")
+        alertTime = UserDefaults.standard.integer(forKey: "alertTime")
     }
 
     func save() {
@@ -44,6 +44,6 @@ class SettingViewModel: ObservableObject {
         UserDefaults.standard.set(trackScore, forKey: "trackScore")
         UserDefaults.standard.set(trackOut, forKey: "trackOut")
         UserDefaults.standard.set(trackPointLoss, forKey: "trackPointLoss")
-        UserDefaults.standard.set(notification, forKey: "notification")
+        UserDefaults.standard.set(alertTime, forKey: "alertTime")
     }
 }

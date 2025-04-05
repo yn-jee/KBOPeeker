@@ -60,7 +60,16 @@ class ApplicationMenu: NSObject {
     }
     
     @objc func about(sender: NSMenuItem) {
-        NSApp.orderFrontStandardAboutPanel()
+//        NSApp.orderFrontStandardAboutPanel()
+        let options: [NSApplication.AboutPanelOptionKey: Any] = [
+            .applicationName: "KBOPeeker",
+            .applicationVersion: "1.0",
+            .version: "1",
+            .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!
+        ]
+
+        NSApp.orderFrontStandardAboutPanel(options: options)
+        NSApp.activate(ignoringOtherApps: true)
     }
     
     @objc func getGameID(sender: NSMenuItem) {

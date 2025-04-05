@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 @main
 struct KBOPeekerApp: App {
@@ -36,14 +35,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.instance = self
-        
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-                if let error = error {
-                    print("🔴 알림 권한 요청 에러: \(error)")
-                } else {
-                    print("🟢 알림 권한 granted: \(granted)")
-                }
-            }
+        GameStateModel.shared.isFetchingGame = true
         
         if let button = self.statusBarItem.button {
             button.title = ""
@@ -63,8 +55,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("득점: \(UserDefaults.standard.bool(forKey: "trackScore"))")
         print("아웃: \(UserDefaults.standard.bool(forKey: "trackOut"))")
         print("실점: \(UserDefaults.standard.bool(forKey: "trackPointLoss"))")
-        print("알림: \(UserDefaults.standard.bool(forKey: "notification"))")
 
+        
         // ✅ 옵저버 등록
         NotificationCenter.default.addObserver(
             self,
@@ -79,17 +71,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func handlePreferencesSaved() {
         print("📣 PreferencesSaved notification received")
         self.teamJustChanged = true
+        
+        GameStateModel.shared.isFetchingGame = true
+        GameStateModel.shared.isCancelled = false
+        
+        let gameState = GameStateModel.shared
+        gameState.isFetchingGame = true
+        gameState.isCancelled = false
+        gameState.selectedTeamName = ""
+        gameState.opponentTeamName = ""
+        gameState.stadiumName = ""
+        gameState.currentInning = ""
+        gameState.isHome = false
+        gameState.isTopInning = true
+        gameState.inningNumber = 0
+        gameState.ballCount = 0
+        gameState.strikeCount = 0
+        gameState.outCount = 0
+        gameState.isFirstBaseOccupied = false
+        gameState.isSecondBaseOccupied = false
+        gameState.isThirdBaseOccupied = false
+        gameState.teamScores = [:]
+        
         startTracking()
     }
 
     func startTracking() {
         self.gameURL = nil
         GameStateModel.shared.isFetchingGame = true
+        GameStateModel.shared.isCancelled = false
         
         // 기존 크롤러 종료
         self.crawler?.stop()
         self.crawler = nil
-
+        
+        guard let button = self.statusBarItem.button else { return }
+        
+        if let button = self.statusBarItem.button {
+            button.title = ""
+            let image = NSImage(named: NSImage.Name("baseball"))
+            image?.isTemplate = true
+            button.image = image
+        }
+        
         fetcher = GameIDFetcher()
         let selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") ?? ""
         print(selectedTeam)
@@ -99,9 +123,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.hasExceededMaxAttempts = false
 
         func tryFetchGameId() {
+            GameStateModel.shared.isFetchingGame = true
+            
             attempt += 1
             print("[시도 \(attempt)] 경기 ID를 검색 중...")
 
+            if let fetcher = self.fetcher, fetcher.isCancelled {
+                print("⛔️ 경기취소 감지됨 — 재시도 중단")
+                GameStateModel.shared.isFetchingGame = false
+                return
+            }
+            
             fetcher?.getGameId(for: selectedTeam) { gameId in
                 if let gameId = gameId {
                     self.gameId = gameId
@@ -117,10 +149,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             return
                         }
                         guard let self = self else { return }
-                        guard let button = self.statusBarItem.button else { return }
 
-                        print("🪧 버튼에 표시될 이벤트 텍스트: \(eventText)")
-
+                        var displayText = "KBO 이벤트"
+                        
                         let priorityOrder = ["홈런", "득점", "루타", "볼넷", "몸에 맞는 볼", "아웃"]
                         if let last = self.lastEventText {
                             let lastPriority = priorityOrder.firstIndex(where: { last.contains($0) }) ?? Int.max
@@ -134,33 +165,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         if self.lastEventText == eventText { return }
                         self.lastEventText = eventText
 
-                        if self.viewModel.notification {
-                            let content = UNMutableNotificationContent()
-                            if eventText.contains("홈런") {
-                                print("홈런!!🤡")
-                                content.title = "홈런!"
-                            } else if eventText.contains("득점") {
-                                print("득점!!🤡")
-                                content.title = "득점!"
-                            } else if eventText.contains("루타") {
-                                print("안타!!🤡")
-                                content.title = "안타!"
-                            } else if eventText.contains("볼넷") || eventText.contains("몸에 맞는 볼") {
-                                print("사사구!!🤡")
-                                content.title = "사사구!"
-                            } else if eventText.contains("아웃") {
-                                print("아웃!!🤡")
-                                content.title = "아웃"
-                            } else if eventText.contains("실점") {
-                                print("실점!!🤡")
-                                content.title = "실점"
-                            } else {
-                                content.title = "KBO 이벤트"
-                            }
-                            content.body = eventText
-                            content.sound = UNNotificationSound.default
-                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-                            UNUserNotificationCenter.current().add(request)
+                        if eventText.contains("홈런") {
+                            print("홈런!!🤡")
+                            displayText = "홈런!"
+                        } else if eventText.contains("득점") {
+                            print("득점!!🤡")
+                            displayText = "득점!"
+                        } else if eventText.contains("루타") {
+                            print("안타!!🤡")
+                            displayText = "안타!"
+                        } else if eventText.contains("볼넷") || eventText.contains("몸에 맞는 볼") {
+                            print("사사구!!🤡")
+                            displayText = "사사구"
+                        } else if eventText.contains("아웃") {
+                            print("아웃!!🤡")
+                            displayText = "아웃"
+                        } else if eventText.contains("실점") {
+                            print("실점!!🤡")
+                            displayText = "실점"
+                        } else {
+                            displayText = "KBO 이벤트"
                         }
 
                         if self.isAnimatingEvent {
@@ -193,22 +217,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         let opponentScore = GameStateModel.shared.teamScores[opponent] ?? 0
                         let scoreText = " \(myScore) : \(opponentScore) "
                         
+                        print("🪧 버튼에 표시될 이벤트 텍스트: \(displayText)")
+                        
                         if eventImage == nil {
                             print("⚠️ 이미지 '\(iconName)' 을 불러오지 못함")
                         }
                         
-                        for i in 0..<5 {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (0.7 * Double(i * 2))) {
+                        let totalDuration = Double(self.viewModel.alertTime)
+                        let interval = 0.7
+                        let repeatCount = Int(totalDuration / (interval * 2))
+
+                        for i in 0..<repeatCount {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (interval * Double(i * 2))) {
                                 button.image = nil
-                                button.title = eventText
+                                button.title = displayText
                             }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (0.7 * Double(i * 2 + 1))) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (interval * Double(i * 2 + 1))) {
                                 button.title = ""
                                 button.image = eventImage
                             }
                         }
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 7.0) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
                             if self.isGameActive {
                                 button.image = nil
                                 button.title = scoreText
@@ -255,26 +285,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 }
                             }
                             self.isGameActive = true
+                            GameStateModel.shared.isFetchingGame = false
                         }
                     }
                     self.lastTrackingStartTime = Date()
                     self.crawler?.start()
-                    
-                    GameStateModel.shared.isFetchingGame = false 
                 } else {
                     if attempt < maxAttempts {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            GameStateModel.shared.isFetchingGame = true
                             tryFetchGameId()
                         }
                     } else {
                         self.hasExceededMaxAttempts = true
                         self.isGameActive = false
                         print("경기를 찾지 못했습니다.")
+                        GameStateModel.shared.isFetchingGame = false
                     }
                 }
             }
         }
-
+        
+        GameStateModel.shared.isFetchingGame = true
         tryFetchGameId()
     }
 }

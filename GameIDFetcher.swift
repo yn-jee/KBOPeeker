@@ -74,7 +74,6 @@
 //        return 0
 //    }
 //}
-//
 
 import Foundation
 import WebKit
@@ -84,6 +83,7 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
     private var browseView: WKWebView?
     private var selectedTeam: String = ""
     private var completionHandler: ((Int?) -> Void)?
+    var isCancelled: Bool = false
 
     func getGameId(for selectedTeam: String, completion: @escaping (Int?) -> Void) {
         self.selectedTeam = selectedTeam
@@ -151,6 +151,8 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
                         let tdText = try row.select("td.td_btn").text()
                         if tdText.contains("경기취소") {
                             print("경기가 없습니다: 경기취소")
+                            GameStateModel.shared.isCancelled = true
+                            self.isCancelled = true
                             self.completionHandler?(nil)
                             return
                         }
@@ -159,7 +161,7 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
 
                 print("오늘 날짜에 해당 팀 경기 없음")
                 self.completionHandler?(nil)
-
+                
             } catch {
                 print("HTML 파싱 실패: \(error.localizedDescription)")
                 self.completionHandler?(nil)

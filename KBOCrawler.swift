@@ -7,7 +7,6 @@
 import Foundation
 import WebKit
 import SwiftSoup
-import UserNotifications
 import Combine
 
 class KBOCrawler: NSObject, WKNavigationDelegate {
@@ -63,6 +62,7 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
 
     private func parseHTML(_ html: String) {
         do {
+            GameStateModel.shared.isFetchingGame = true
             let doc = try SwiftSoup.parse(html)
 
             guard let selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") else { return }
@@ -122,19 +122,32 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                 } else {
                     print("⚠️ selectedTeam이 team1/team2 어디에도 없음 (두 번째 판별)")
                 }
+                GameStateModel.shared.isFetchingGame = false
             }
 
             if gameState.currentInning.contains("경기종료") {
                 print("경기가 종료되었습니다.")
+                GameStateModel.shared.isFetchingGame = false
                 self.stop()
                 return
             }
             
             if gameState.currentInning.contains("경기 전") {
                 print("경기 시작 전입니다.")
+                GameStateModel.shared.isFetchingGame = false
                 self.stop()
+        
+                DispatchQueue.main.async {
+                    if let button = AppDelegate.instance?.statusBarItem.button {
+                        let image = NSImage(named: NSImage.Name("baseball"))
+                        image?.isTemplate = true
+                        button.image = image
+                        button.title = ""
+                    }
+                }
                 return
             }
+
             
             let scoreDiv = try doc.select("div.score").first()
 
@@ -178,13 +191,13 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
             print("selectedTeamName: \(gameState.selectedTeamName)")
             print("currentAttackingTeam: \(currentAttackingTeam)")
             let isOurTeamAtBat = (currentAttackingTeam == gameState.selectedTeamName)
-            if let setting = AppDelegate.instance?.viewModel,
-               setting.trackOut,
-               isOurTeamAtBat,
-               outCount > previousOutCount {
-                print("✅ 아웃카운트 증가 감지됨: \(previousOutCount) → \(outCount)")
-                self.onEventDetected?("아웃")
-            }
+//            if let setting = AppDelegate.instance?.viewModel,
+//               setting.trackOut,
+//               isOurTeamAtBat,
+//               outCount > previousOutCount {
+//                print("✅ 아웃카운트 증가 감지됨: \(previousOutCount) → \(outCount)")
+//                self.onEventDetected?("아웃")
+//            }
 
             print("현재 공격 팀: \(currentAttackingTeam) / 우리 팀 공격 중? \(isOurTeamAtBat)")
 
@@ -324,18 +337,6 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
             if let setting = AppDelegate.instance?.viewModel {
                 print("isOurTeamAtBat: \(isOurTeamAtBat), outCount: \(outCount), previousOutCount: \(previousOutCount)")
 
-                // 득점 감지
-                if setting.trackScore && scoreForTeam(gameState.selectedTeamName) > previousMyScoreValue {
-                    let event = "득점!"
-                    self.onEventDetected?(event)
-                }
-
-                // 실점 감지
-                if setting.trackPointLoss && scoreForTeam(gameState.opponentTeamName) > previousOpponentScoreValue {
-                    let event = "실점"
-                    print("🐛 AppDelegate에 전달될 eventText: \(event)")
-                    self.onEventDetected?(event)
-                }
 
                 // 타자 이벤트 전체 텍스트 기준으로 판단
                 let fullEventTexts: [String] = try {
@@ -361,39 +362,69 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     }
                     return lines
                 }()
-
+//                
+//                // 홈인 텍스트 기반으로 득점/실점 판별
+//                for line in fullEventTexts {
+//                    if line.contains("홈인") {
+//                        let isOurTeamScored = isOurTeamAtBat
+//                        if isOurTeamScored && setting.trackScore {
+//                            let event = "득점! \(line)"
+//                            self.onEventDetected?(event)
+//                            break
+//                        } else if !isOurTeamScored && setting.trackPointLoss {
+//                            let event = "실점! \(line)"
+//                            print("🐛 AppDelegate에 전달될 eventText: \(event)")
+//                            self.onEventDetected?(event)
+//                            break
+//                        }
+//                    }
+//                }
+                
                 // 모든 이벤트에서 우선순위에 맞는 항목을 탐색
                 var eventPriority: [(String, String)] = []
 
                 for line in fullEventTexts {
-                    if setting.trackHomeRun && line.contains("홈런") {
-                        eventPriority.append(("홈런", "홈런! \(line)"))
-                    }
-                    if setting.trackScore && line.contains("홈인") {
-                        eventPriority.append(("득점", "득점! \(line)"))
-                    }
-                    if setting.trackHit && (line.contains("안타") || line.contains("루타")) {
-                        eventPriority.append(("안타", "안타 발생: \(line)"))
-                    }
-                    if setting.trackBB && (line.contains("볼넷") || line.contains("몸에 맞는 볼")) {
-                        eventPriority.append(("사사구", "사사구 발생: \(line)"))
+                    if isOurTeamAtBat {
+                        if setting.trackHomeRun && line.contains("홈런") {
+                            eventPriority.append(("홈런", "홈런! \(line)"))
+                        }
+                        if setting.trackScore && line.contains("홈인") {
+                            eventPriority.append(("득점", "득점! \(line)"))
+                        }
+                        if setting.trackHit && (line.contains("안타") || line.contains("루타")) {
+                            eventPriority.append(("안타", "안타! \(line)"))
+                        }
+                        if setting.trackBB && (line.contains("볼넷") || line.contains("몸에 맞는 볼")) {
+                            eventPriority.append(("사사구", "사사구: \(line)"))
+                        }
+                        if setting.trackBB && (line.contains("아웃")) {
+                            eventPriority.append(("아웃", "아웃: \(line)"))
+                        }
+                    } else {
+                        if setting.trackScore && line.contains("홈인") {
+                            eventPriority.append(("실점", "실점: \(line)"))
+                        }
                     }
                 }
 
-                let priorityOrder = ["홈런", "득점", "안타", "사사구"]
+                let priorityOrder = ["홈런", "득점", "안타", "사사구", "아웃", "실점"]
                 for priority in priorityOrder {
                     if let found = eventPriority.first(where: { $0.0 == priority }) {
                         highestPriorityEvent = found.1
                         break
                     }
                 }
-
-                // 아웃은 우선순위 이벤트가 없을 때만 감지
-                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
-                    if highestPriorityEvent == nil {
-                        highestPriorityEvent = "아웃"
-                    }
-                }
+//
+//                // 아웃 텍스트 감지 (볼넷 등보다 우선순위 낮음)
+//                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
+//                    if highestPriorityEvent == nil {
+//                        if let outLine = fullEventTexts.first(where: { $0.contains("아웃") }) {
+//                            highestPriorityEvent = "아웃: \(outLine)"
+//                        } else {
+//                            highestPriorityEvent = "아웃"
+//                        }
+//                    }
+//                }
 
                 // 최종 이벤트 실행
                 if let finalEvent = highestPriorityEvent {
@@ -434,12 +465,4 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
         return gameState.teamScores[team] ?? 0
     }
 
-    private func sendNotification(title: String, body: String) {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = UNNotificationSound.default
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request)
-    }
 }

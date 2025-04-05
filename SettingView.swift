@@ -20,11 +20,13 @@ struct SettingView: View {
                     .font(.headline)
                 Picker(selection: $viewModel.selectedTeam, label: Text("")) {
                     ForEach(teamNames.keys.sorted(), id: \.self) { key in
-                        Text(teamNames[key]!).tag(key)
+                        Text(teamNames[key]!)
+                            .tag(key)
+                            .padding(.vertical, 2)
                     }
                 }
                 .pickerStyle(.inline)
-                .frame(width: 200)
+                .frame(width: 200, height: 270)
             }
             .padding([.top, .bottom], 10)
             
@@ -33,36 +35,49 @@ struct SettingView: View {
             VStack {
                 Text("추적할 이벤트를 선택하세요")
                     .font(.headline)
-                HStack {
-                    VStack {
-                        Toggle("경기 시작", isOn: $viewModel.trackGameStarted)
-                        Toggle("경기 종료", isOn: $viewModel.trackGameFinished)
-                    }.frame(width: 70)
-                    VStack {
-                        Toggle("안타", isOn: $viewModel.trackHit)
-                        Toggle("사사구", isOn: $viewModel.trackBB)
-                        Toggle("홈런", isOn: $viewModel.trackHomeRun)
-                        Toggle("득점", isOn: $viewModel.trackScore)
-                    }.frame(width: 70)
-                    VStack {
-                        Toggle("아웃", isOn: $viewModel.trackOut)
-                        Toggle("실점", isOn: $viewModel.trackPointLoss)
-                    }.frame(width: 70)
-                }
+                VStack {
+                    HStack {
+                        VStack {
+                            Toggle("경기 시작", isOn: $viewModel.trackGameStarted)
+                            Toggle("경기 종료", isOn: $viewModel.trackGameFinished)
+                        }.frame(width: 70)
+                        VStack {
+                            Toggle("안타", isOn: $viewModel.trackHit)
+                            Toggle("사사구", isOn: $viewModel.trackBB)
+                            Toggle("홈런", isOn: $viewModel.trackHomeRun)
+                            Toggle("득점", isOn: $viewModel.trackScore)
+                        }.frame(width: 70)
+                        VStack {
+                            Toggle("아웃", isOn: $viewModel.trackOut)
+                            Toggle("실점", isOn: $viewModel.trackPointLoss)
+                        }.frame(width: 70)
+                    }
 
-                Toggle("알림 활성화", isOn: $viewModel.notification)
-                    .padding()
-                
-                Button(action: {
-                    openLoginItemsPreferencePane()
-                }) {
-                    Label("로그인 시 자동 실행 설정", systemImage: "gearshape")
+                    HStack {
+                        Text("알림 지속 시간  ")
+                        Picker("", selection: $viewModel.alertTime) {
+                            ForEach(1...20, id: \.self) { second in
+                                Text("\(second)").tag(second)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 60)
+                        Text("초")
+                    }
+                    .padding([.leading, .trailing])
+                    
+                    Button(action: {
+                        openLoginItemsPreferencePane()
+                    }) {
+                        Label("로그인 시 자동 실행 설정", systemImage: "gearshape")
+                    }
+                    .buttonStyle(.bordered)
+                    .padding(.top, 10)
+                    
+                    Text("+ > Finder에서 KBOPeeker 선택 > 추가")
+                    .padding(.top, 10)
                 }
-                .buttonStyle(.bordered)
-                .padding(.top, 10)
-                
-                Text("+ > Finder에서 KBOPeeker 선택 > 추가")
-                .padding(.top, 10)
+                .frame(height: 270)
             }
             
             Spacer()
@@ -96,7 +111,7 @@ struct SettingView: View {
         .onChange(of: viewModel.trackPointLoss) {
             viewModel.save()
         }
-        .onChange(of: viewModel.notification) {
+        .onChange(of: viewModel.alertTime) {
             viewModel.save()
         }
         .onDisappear {
@@ -110,7 +125,7 @@ struct SettingView: View {
             print("득점: \(UserDefaults.standard.bool(forKey: "trackScore"))")
             print("아웃: \(UserDefaults.standard.bool(forKey: "trackOut"))")
             print("실점: \(UserDefaults.standard.bool(forKey: "trackPointLoss"))")
-            print("알림: \(UserDefaults.standard.bool(forKey: "notification"))")
+            print("지속 시간: \(UserDefaults.standard.integer(forKey: "alertTime"))")
             
             UserDefaults.standard.set(true, forKey: "initialSetupDone")
             NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
@@ -118,7 +133,7 @@ struct SettingView: View {
             gameState.isFetchingGame = true
             
         }
-        .frame(width: 470, height: 270)
+        .frame(width: 470, height: 320)
     }
     
     func openLoginItemsPreferencePane() {
