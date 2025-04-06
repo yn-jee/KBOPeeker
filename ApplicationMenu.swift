@@ -9,6 +9,11 @@
 import Foundation
 import SwiftUI
 
+class EventModel: ObservableObject {
+    static let shared = EventModel()
+    @Published var latestEvent: String = ""
+}
+
 class ApplicationMenu: NSObject {
     let menu = NSMenu()
     private var settingsWindow: NSWindow?
@@ -16,8 +21,9 @@ class ApplicationMenu: NSObject {
     
     func createMenu() -> NSMenu {
         let mainView = ContentView(viewModel: SettingViewModel.shared)
+            .environmentObject(EventModel.shared)
         let topView = NSHostingController(rootView: mainView)
-        topView.view.frame.size = CGSize(width: 300, height: 120)
+        topView.view.frame.size = CGSize(width: 300, height: 160)
         
         let customMenuItem = NSMenuItem()
         customMenuItem.view = topView.view
@@ -60,13 +66,20 @@ class ApplicationMenu: NSObject {
     }
     
     @objc func about(sender: NSMenuItem) {
-//        NSApp.orderFrontStandardAboutPanel()
+        let creditsText = """
+            KBO 실시간 중계 이벤트 추적기
+            개발자: ynjee
+            문의: ynjee00@google.com
+            """
+        
         let options: [NSApplication.AboutPanelOptionKey: Any] = [
-            .applicationName: "KBOPeeker",
-            .applicationVersion: "1.0",
-            .version: "1",
-            .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!
-        ]
+                .applicationName: "KBOPeeker",
+                .applicationVersion: "1.0",
+                .version: "1",
+                .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!,
+                .credits: NSAttributedString(string: creditsText)
+            ]
+
 
         NSApp.orderFrontStandardAboutPanel(options: options)
         NSApp.activate(ignoringOtherApps: true)

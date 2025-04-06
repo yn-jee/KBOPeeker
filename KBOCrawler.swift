@@ -40,6 +40,18 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
         }
     }
 
+    func pause(for seconds: Double) {
+        timer?.invalidate()
+        timer = nil
+        print("⏸️ \(seconds)초 동안 크롤링 일시 정지")
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
+            guard let self = self else { return }
+            self.timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+                self?.webView?.reload()
+            }
+        }
+    }
+    
     func stop() {
         timer?.invalidate()
         timer = nil
@@ -240,19 +252,48 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     let name = try div.select("strong.txt_player").text()
                     if name == previousName {
                         let itemHistoryDivs = try div.select("div.item_history")
+                        var previousLines: [String] = []
+
                         for item in itemHistoryDivs.reversed() {
-                            if let span = try? item.select("span.txt_g").first(), let text = try? span.text(), !text.isEmpty {
-                                print("🕓 이전 타자(\(previousName)) 마지막 이벤트: \(text)")
-                                previousBatterEventLine = text
-                                break
-                            } else if let span = try? item.select("span").first(), let text = try? span.text(), !text.isEmpty {
-                                print("🕓 이전 타자(\(previousName)) 대체 이벤트: \(text)")
-                                previousBatterEventLine = text
-                                break
+                            let spans = try? item.select("span.txt_g")
+                            if let spans = spans {
+                                for span in spans {
+                                    let text = try span.text()
+                                    if !text.isEmpty {
+                                        previousLines.append(text)
+                                    }
+                                }
                             }
                         }
+
+                        print("🕓 이전 타자(\(previousName)) 이벤트 라인들:")
+                        for line in previousLines {
+                            print("    → \(line)")
+                        }
+
+                        if let setting = AppDelegate.instance?.viewModel, isOurTeamAtBat {
+                            let priorityList: [(String, Bool, (String) -> Bool, (String) -> String)] = [
+                                ("홈런", setting.trackHomeRun, { $0.contains("홈런") }, { "홈런! \($0)" }),
+                                ("득점", setting.trackScore, { $0.contains("홈인") }, { "득점! \($0)" }),
+                                ("안타", setting.trackHit, { $0.contains("안타") || $0.contains("루타") }, { "안타! \($0)" }),
+                                ("사사구", setting.trackBB, { $0.contains("볼넷") || $0.contains("몸에 맞는 볼") }, { "사사구: \($0)" }),
+                                ("아웃", setting.trackOut, { $0.contains("아웃") }, { "아웃: \($0)" }),
+                            ]
+
+                            for (_, enabled, check, format) in priorityList where enabled {
+                                if let line = previousLines.first(where: check) {
+                                    previousBatterEventLine = format(line)
+                                    break
+                                }
+                            }
+                        }
+
                         break
                     }
+                }
+
+                if let result = previousBatterEventLine {
+                    print("🕓 이전 타자 우선순위 이벤트: \(result)")
                 }
             }
 //
@@ -362,7 +403,7 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     }
                     return lines
                 }()
-//                
+//
 //                // 홈인 텍스트 기반으로 득점/실점 판별
 //                for line in fullEventTexts {
 //                    if line.contains("홈인") {
@@ -397,11 +438,11 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                         if setting.trackBB && (line.contains("볼넷") || line.contains("몸에 맞는 볼")) {
                             eventPriority.append(("사사구", "사사구: \(line)"))
                         }
-                        if setting.trackBB && (line.contains("아웃")) {
+                        if setting.trackOut && (line.contains("아웃")) {
                             eventPriority.append(("아웃", "아웃: \(line)"))
                         }
                     } else {
-                        if setting.trackScore && line.contains("홈인") {
+                        if setting.trackScore && (line.contains("홈인") || line.contains("홈런")) {
                             eventPriority.append(("실점", "실점: \(line)"))
                         }
                     }
@@ -412,6 +453,25 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     if let found = eventPriority.first(where: { $0.0 == priority }) {
                         highestPriorityEvent = found.1
                         break
+                    }
+                }
+                // Fallback: detect final out when inning changes and current batter block may be gone
+                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
+                    if highestPriorityEvent == nil {
+                        if outCount == 3 {
+                            highestPriorityEvent = "이닝 종료: 세 번째 아웃"
+                        }
+                    }
+                }
+                // Fallback: detect score change via number comparison
+                if highestPriorityEvent == nil {
+                    let currentMyScore = scoreForTeam(gameState.selectedTeamName)
+                    let currentOpponentScore = scoreForTeam(gameState.opponentTeamName)
+
+                    if setting.trackScore && currentMyScore > (previousMyScore ?? 0) {
+                        highestPriorityEvent = "득점!"
+                    } else if setting.trackPointLoss && currentOpponentScore > (previousOpponentScore ?? 0) {
+                        highestPriorityEvent = "실점!"
                     }
                 }
 //

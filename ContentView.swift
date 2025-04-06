@@ -24,6 +24,7 @@ let teamNames = [
 
 struct ContentView: View {
     @ObservedObject var viewModel: SettingViewModel
+    @EnvironmentObject var eventModel: EventModel
     @ObservedObject var gameState = GameStateModel.shared
     
     
@@ -191,9 +192,17 @@ struct ContentView: View {
         else {
             VStack(alignment: .center) {
                 Text("\(teamNames[viewModel.selectedTeam] ?? "우리 팀") 화이팅!")
-                    .padding(.top, 10)
+                    .padding(.top, 7)
                     .font(.system(size: 12, weight: .bold))
                 Text("\(gameState.stadiumName)")
+                
+                Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중..." : "📢 \(eventModel.latestEvent)")
+                    .font(.system(size: 11))
+                    .padding(.top, 4)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 27)
+                    .opacity(eventModel.latestEvent.isEmpty ? 0.5 : 1)
+                
                 // 경기 정보
                 HStack(alignment: .center) {
                     Spacer()
@@ -324,8 +333,8 @@ struct ContentView: View {
                     
                     Spacer()
                 }
-                .padding([.top, .bottom], 10)
-                
+                .padding(.top, 5)
+                .padding(.bottom, 8)
             }
             .frame(width: 200)
         }

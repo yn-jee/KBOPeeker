@@ -143,11 +143,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     self.crawler = KBOCrawler(gameURL: gameURL)
                     self.crawler?.onEventDetected = { [weak self] eventText in
-                        let now = Date()
-                        if let startTime = self?.lastTrackingStartTime, now.timeIntervalSince(startTime) < 3 {
-                            print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
-                            return
-                        }
+                        // Removed redundant check:
+                        // let now = Date()
+                        // if let startTime = self?.lastTrackingStartTime, now.timeIntervalSince(startTime) < 3 {
+                        //     print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
+                        //     return
+                        // }
                         guard let self = self else { return }
 
                         var displayText = "KBO 이벤트"
@@ -156,10 +157,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         if let last = self.lastEventText {
                             let lastPriority = priorityOrder.firstIndex(where: { last.contains($0) }) ?? Int.max
                             let newPriority = priorityOrder.firstIndex(where: { eventText.contains($0) }) ?? Int.max
-                            if newPriority > lastPriority {
-                                print("🔁 낮은 우선순위 이벤트 무시됨: \(eventText)")
-                                return
-                            }
+                            
+//                            if eventText == self.lastEventText {
+//                                print("⚠️ 이전 이벤트와 동일하므로 무시됨: \(eventText)")
+//                                return
+//                            }
+////                            
+//                            if newPriority > lastPriority {
+//                                print("🔁 낮은 우선순위 이벤트 무시됨: \(eventText)")
+//                                return
+//                            }
                         }
 
                         if self.lastEventText == eventText { return }
@@ -224,18 +231,66 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         }
                         
                         let totalDuration = Double(self.viewModel.alertTime)
-                        let interval = 0.7
-                        let repeatCount = Int(totalDuration / (interval * 2))
+                        let timeSinceStart = Date().timeIntervalSince(self.lastTrackingStartTime ?? Date())
+                        if timeSinceStart < 3 {
+                            print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
+                            return
+                        }
+                        self.crawler?.pause(for: totalDuration)
 
-                        for i in 0..<repeatCount {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (interval * Double(i * 2))) {
-                                button.image = nil
-                                button.title = displayText
+                        var flashCount = Int(totalDuration)
+                        var showText = true
+                        if self.viewModel.blinkIcon {
+                            button.image = eventImage
+                            button.title = ""
+                            button.font = NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+ 
+                            let totalBlinks = max(Int(totalDuration) - 1, 0)
+                            var remainingBlinks = totalBlinks
+                            var showText = true
+ 
+                            let flashTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                                if remainingBlinks == 0 {
+                                    timer.invalidate()
+ 
+                                    // 마지막 상태 표시 (텍스트 or 아이콘)
+                                    if showText {
+                                        button.title = displayText
+                                        button.image = nil
+                                    } else {
+                                        button.title = ""
+                                        button.image = eventImage
+                                    }
+ 
+                                    // 1.2초 후 상태 복원
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                                        self.isAnimatingEvent = false
+                                        self.lastEventText = nil
+ 
+                                        if self.isGameActive {
+                                            button.image = nil
+                                            button.title = scoreText
+                                        } else {
+                                            button.title = ""
+                                            let image = NSImage(named: NSImage.Name("baseball"))
+                                            image?.isTemplate = true
+                                            button.image = image
+                                        }
+                                    }
+                                    return
+                                }
+ 
+                                remainingBlinks -= 1
+                                if showText {
+                                    button.title = displayText
+                                    button.image = nil
+                                } else {
+                                    button.title = ""
+                                    button.image = eventImage
+                                }
+                                showText.toggle()
                             }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (interval * Double(i * 2 + 1))) {
-                                button.title = ""
-                                button.image = eventImage
-                            }
+                            RunLoop.main.add(flashTimer, forMode: .common)
                         }
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
@@ -250,6 +305,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             }
                             self.isAnimatingEvent = false
                             self.lastEventText = nil
+                        }
+                        
+                        DispatchQueue.main.async {
+                            EventModel.shared.latestEvent = eventText
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(20)) {
+                                if EventModel.shared.latestEvent == eventText {
+                                    EventModel.shared.latestEvent = ""
+                                }
+                            }
                         }
                     }
                     self.crawler?.onTeamDetected = { isHome, opponent in

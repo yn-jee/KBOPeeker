@@ -52,6 +52,8 @@ struct SettingView: View {
                             Toggle("실점", isOn: $viewModel.trackPointLoss)
                         }.frame(width: 70)
                     }
+                    .padding(.top, 10)
+                    Spacer()
 
                     HStack {
                         Text("알림 지속 시간  ")
@@ -65,6 +67,10 @@ struct SettingView: View {
                         Text("초")
                     }
                     .padding([.leading, .trailing])
+                    Spacer()
+                    
+                    Toggle("아이콘 깜빡임", isOn: $viewModel.blinkIcon)
+                    Spacer()
                     
                     Button(action: {
                         openLoginItemsPreferencePane()
@@ -72,10 +78,10 @@ struct SettingView: View {
                         Label("로그인 시 자동 실행 설정", systemImage: "gearshape")
                     }
                     .buttonStyle(.bordered)
-                    .padding(.top, 10)
+                    .padding(.bottom, 10)
                     
                     Text("+ > Finder에서 KBOPeeker 선택 > 추가")
-                    .padding(.top, 10)
+                    Spacer()
                 }
                 .frame(height: 270)
             }
@@ -140,29 +146,4 @@ struct SettingView: View {
         let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!
         NSWorkspace.shared.open(url)
     }
-    
-//
-//    func savePreferences() {
-//        // 저장 로직
-//        UserDefaults.standard.set(trackGameStarted, forKey: "trackGameStarted")
-//        UserDefaults.standard.set(trackGameFinished, forKey: "trackGameFinished")
-//        UserDefaults.standard.set(selectedTeam, forKey: "selectedTeam")
-//        UserDefaults.standard.set(trackHit, forKey: "trackHit")
-//        UserDefaults.standard.set(trackHomeRun, forKey: "trackHomeRun")
-//        UserDefaults.standard.set(trackScore, forKey: "trackScore")
-//        UserDefaults.standard.set(trackOut, forKey: "trackOut")
-//        UserDefaults.standard.set(trackPointLoss, forKey: "trackPointLoss")
-//        UserDefaults.standard.set(notification, forKey: "notification")
-//
-//        print("Saved Preferences:")
-//        print("Team: \(UserDefaults.standard.string(forKey: "selectedTeam") ?? "")")
-//        print("경기 시작: \(UserDefaults.standard.bool(forKey: "trackGameStarted"))")
-//        print("경기 종료: \(UserDefaults.standard.bool(forKey: "trackGameFinished"))")
-//        print("안타: \(UserDefaults.standard.bool(forKey: "trackHit"))")
-//        print("홈런: \(UserDefaults.standard.bool(forKey: "trackHomeRun"))")
-//        print("득점: \(UserDefaults.standard.bool(forKey: "trackScore"))")
-//        print("아웃: \(UserDefaults.standard.bool(forKey: "trackOut"))")
-//        print("실점: \(UserDefaults.standard.bool(forKey: "trackPointLoss"))")
-//        print("알림: \(UserDefaults.standard.bool(forKey: "notification"))")
-//    }
 }
