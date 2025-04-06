@@ -36,25 +36,33 @@ struct SettingView: View {
                 Text("추적할 이벤트를 선택하세요")
                     .font(.headline)
                 VStack {
-                    HStack {
-                        VStack {
-                            Toggle("경기 시작", isOn: $viewModel.trackGameStarted)
-                            Toggle("경기 종료", isOn: $viewModel.trackGameFinished)
-                        }.frame(width: 70)
-                        VStack {
-                            Toggle("안타", isOn: $viewModel.trackHit)
-                            Toggle("사사구", isOn: $viewModel.trackBB)
+                    VStack {
+//                        VStack {
+//                            Toggle("경기 시작", isOn: $viewModel.trackGameStarted)
+//                            Toggle("경기 종료", isOn: $viewModel.trackGameFinished)
+//                        }.frame(width: 70)
+                        HStack {
                             Toggle("홈런", isOn: $viewModel.trackHomeRun)
                             Toggle("득점", isOn: $viewModel.trackScore)
-                        }.frame(width: 70)
-                        VStack {
+                        }
+                        .frame(width: 105, alignment: .leading)
+                        HStack {
+                            Toggle("안타", isOn: $viewModel.trackHit)
+                            Toggle("사사구", isOn: $viewModel.trackBB)
+                        }
+                        .frame(width: 105, alignment: .leading)
+                        HStack {
                             Toggle("아웃", isOn: $viewModel.trackOut)
                             Toggle("실점", isOn: $viewModel.trackPointLoss)
-                        }.frame(width: 70)
+                        }
+                        .frame(width: 105, alignment: .leading)
                     }
                     .padding(.top, 10)
                     Spacer()
-
+                    
+                    Toggle("아이콘 깜빡임", isOn: $viewModel.blinkIcon)
+                    Spacer()
+                    
                     HStack {
                         Text("알림 지속 시간  ")
                         Picker("", selection: $viewModel.alertTime) {
@@ -67,9 +75,6 @@ struct SettingView: View {
                         Text("초")
                     }
                     .padding([.leading, .trailing])
-                    Spacer()
-                    
-                    Toggle("아이콘 깜빡임", isOn: $viewModel.blinkIcon)
                     Spacer()
                     
                     Button(action: {
