@@ -4,39 +4,55 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="KBOPeeker Team" />
-    <title>KBOPeeker 다운로드</title>
+    <title>KBOPeeker</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="icon" type="image/png" href="Assets/favicon.svg" />
   </head>
   <body>
     <div class="title">
       <div class="hero-banner">
         <img
-          src="hero_banner.png"
+          src="Assets/hero_banner.png"
           alt="KBOPeeker Banner"
           class="hero-banner-img" />
       </div>
-
+      <a class="coffee-button" href="coffee.html"> ☕ 개발자 응원하기 </a>
       <div class="app-title">
         <h1>⚾ KBOPeeker</h1>
         <p class="tagline">KBO 실시간 경기 추적 macOS 메뉴바 앱</p>
       </div>
     </div>
     <div class="download">
-      <a class="download-button" href="KBOPeeker.dmg" download>
-        ⬇️ KBOPeeker.dmg 다운로드
+      <a class="download-button" href="Assets/dmg/KBOPeeker.dmg" download>
+        KBOPeeker.dmg 다운로드
       </a>
-      <p class="version-info">v1.0.0 (2025.04.06)</p>
+      <p class="version-info">v1.0.0 (2025.04.07)</p>
     </div>
     <main>
       <!-- 앱 소개 -->
       <section class="intro">
-        <h2>이 앱은 무엇인가요?</h2>
+        <h2>KBOPeeker란?</h2>
         <p>
           KBOPeeker는 KBO 리그 실시간 경기 상황을 추적하여 macOS 메뉴바에
           표시해주는 앱입니다. <br />별도 창 없이 메뉴바에서 타자별 상황, 점수,
           이닝 정보를 실시간으로 확인할 수 있습니다.
         </p>
+        <div class="intro-image">
+          <img class="demo" src="Assets/view.png" alt="KBOPeeker Screenshot" />
+          <video
+            class="demo"
+            autoplay
+            loop
+            muted
+            playsinline
+            class="demo-video">
+            <source
+              src="Assets/edited.mp4"
+              type="video/mp4"
+              alt="KBOPeeker Demonstration" />
+            브라우저가 비디오를 지원하지 않습니다.
+          </video>
+        </div>
       </section>
 
       <!-- 설치 및 사용법 -->
@@ -44,27 +60,55 @@
         <h2>설치 및 사용 방법</h2>
         <ol>
           <li>
-            위 다운로드 버튼을 클릭하여 설치 파일(KBOPeeker.dmg)을 받습니다.
+            위 다운로드 버튼을 클릭해 <strong>KBOPeeker.dmg</strong> 파일을
+            받습니다.
           </li>
-          <li>앱을 실행하여 보안 설정을 따라 설치합니다.</li>
-          <li>설치 후 메뉴바 우측 상단에 KBOPeeker 아이콘이 나타납니다.</li>
-          <li>아이콘 클릭 시 현재 경기 상황을 확인할 수 있습니다.</li>
+          <li>
+            다운로드한 파일을 <strong>마우스 오른쪽 클릭</strong>하여<br />
+            <em>"다음으로 열기 &gt; DiskImageMounter(기본)"</em>을 선택해
+            열어주세요.
+          </li>
+          <img class="guide-image" src="Assets/guide.png" alt="guide image" />
+          <li>KBOPeeker 아이콘을 Applications 폴더로 드래그해 설치합니다.</li>
+          <li>
+            설치 후 Launchpad나 Spotlight에서 "KBOPeeker"를 검색해 실행하세요.
+          </li>
+          <li>
+            처음 실행 시 보안 경고가 뜨면,<br />
+            시스템 설정 > 보안 및 개인정보 보호 > 일반 탭에서 [열기] 버튼을
+            눌러주세요.
+          </li>
         </ol>
       </section>
+
+      <!-- 자동 실행 설정 -->
+      <!-- <section class="guide">
+        <h2>자동 실행 설정 방법</h2>
+        <ol>
+          <li>
+          </li>
+        </ol>
+      </section> -->
 
       <!-- 배포 일지 -->
       <section class="changelog">
         <h2>배포 일지</h2>
-        <ul>
-          <li><strong>v1.0.0</strong> - 첫 공식 릴리스 (2025.04.06)</li>
-        </ul>
+        <details>
+          <summary><strong>v1.0.0</strong> - 2025.04.07</summary>
+          <ul>
+            <p>첫 공식 릴리스입니다.</p>
+          </ul>
+        </details>
       </section>
     </main>
 
     <!-- 푸터 -->
     <footer>
       <p>&copy; 2025 KBOPeeker. All rights reserved.</p>
-      <p>문의: <a href="mailto:ynjee00@gmail.com">ynjee00@gmail.com</a></p>
+      <p>
+        <b>문의사항이나 건의사항이 있으시다면 언제든지 편하게 알려주세요.</b>
+      </p>
+      <p><a href="mailto:ynjee00@gmail.com">ynjee00@gmail.com</a></p>
     </footer>
   </body>
 </html>

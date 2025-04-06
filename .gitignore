@@ -1,6 +1,7 @@
 echo ".DS_Store
 build/
 DerivedData/
+Release/
 *.xcuserstate
 *.xcworkspace
 *.xcodeproj/project.xcworkspace/xcuserdata/
