@@ -100,6 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.gameURL = nil
         GameStateModel.shared.isFetchingGame = true
         GameStateModel.shared.isCancelled = false
+        GameStateModel.shared.noGame = false
         
         // 기존 크롤러 종료
         self.crawler?.stop()
@@ -126,6 +127,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             GameStateModel.shared.isFetchingGame = true
             
             attempt += 1
+            if GameStateModel.shared.noGame {
+                print("✅ noGame 플래그가 설정되어 있으므로 재시도 중단")
+                GameStateModel.shared.isFetchingGame = false
+                return
+            }
             print("[시도 \(attempt)] 경기 ID를 검색 중...")
 
             if let fetcher = self.fetcher, fetcher.isCancelled {

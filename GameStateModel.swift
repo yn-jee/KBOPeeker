@@ -12,6 +12,7 @@ class GameStateModel: ObservableObject {
     static let shared = GameStateModel() // 싱글톤
     @Published var isFetchingGame: Bool = false
     @Published var isCancelled: Bool = false
+    @Published var noGame: Bool = false
     
     @Published var isTopInning: Bool = true
     @Published var inningNumber: Int = 1

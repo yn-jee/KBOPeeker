@@ -1,80 +1,3 @@
-//
-//  GameInfoFetcher.swift
-//  KBOPeeker
-//
-//  Created by 나윤지 on 3/22/25.
-////
-//
-//import Foundation
-//import SwiftSoup
-//
-//class GameInfoFetcher {
-//    static func getGameId(for selectedTeam: String, completion: @escaping (Int?) -> Void) {
-//        DispatchQueue.global().async {
-//            let dateFormatter = DateFormatter()
-//            dateFormatter.dateFormat = "yyyyMMdd"
-//            let today = dateFormatter.string(from: Date())
-//
-//            let monthPrefix = String(today.prefix(6))
-//            let dayPart = String(today.suffix(2))
-//
-//            let url = URL(string: "https://sports.daum.net/schedule/kbo?date=\(monthPrefix)")!
-//
-//            do {
-//                let webString = try String(contentsOf: url)
-//                let document = try SwiftSoup.parse(webString)
-//
-//                print(webString)
-//                print("오늘 날짜 문자열:", today)
-//
-//                do {
-//                    let allRows = try document.select("tr")
-//                    print(allRows.count)
-//                    let rows = try allRows.filter { try $0.attr("data-date") == "20250322" }
-//                    print("필터링된 tr 개수:", rows.count)
-//
-//                    for row in allRows {
-//                        print("row:", try row.text())
-//                    }
-//                } catch {
-//                    print("파싱 에러:", error)
-//                }
-//
-//                print("오늘 날짜에 해당 팀 경기 없음")
-//                DispatchQueue.main.async {
-//                    completion(nil)
-//                }
-//
-//            } catch {
-//                print("HTML 파싱 실패 또는 로딩 실패: \(error.localizedDescription)")
-//                DispatchQueue.main.async {
-//                    completion(nil)
-//                }
-//            }
-//        }
-//    }
-//
-//    private static func parse(json: [String: Any], selectedTeam: String, date: String) -> Int {
-//        guard let schedule = json["schedule"] as? [String: [[String: Any]]],
-//              let games = schedule[date] else {
-//            print("No games found for date: \(date)")
-//            return -1
-//        }
-//
-//        for game in games {
-//            guard let home = game["homeTeamName"] as? String,
-//                  let away = game["awayTeamName"] as? String,
-//                  let gameId = game["gameId"] as? Int else { continue }
-//
-//            if home == selectedTeam || away == selectedTeam {
-//                print("Game ID: \(gameId)")
-//                return gameId
-//            }
-//        }
-//        return 0
-//    }
-//}
-
 import Foundation
 import WebKit
 import SwiftSoup
@@ -122,9 +45,20 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
                 dateFormatter.dateFormat = "yyyyMMdd"
                 let today = dateFormatter.string(from: Date())
 
-//                let today = "20240622"
-                
                 let allRows = try document.select("tr")
+                
+                let hasNoGameRow = try allRows.contains { row in
+                    let text = try row.select("td.td_empty").text()
+                    let dateAttr = try row.attr("data-date")
+                    return text.contains("경기가 없습니다") && dateAttr == today
+                }
+                if hasNoGameRow {
+                    print("경기가 없습니다: 해당 날짜에 경기 없음")
+                    GameStateModel.shared.noGame = true
+                    self.completionHandler?(nil)
+                    return
+                }
+                
                 let rows = try allRows.filter { try $0.attr("data-date") == today }
 
                 print("오늘 날짜 문자열: \(today)")
@@ -148,8 +82,8 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
                         }
 
                         // a 태그가 없고 '경기취소' 텍스트 있는 경우
-                        let tdText = try row.select("td.td_btn").text()
-                        if tdText.contains("경기취소") {
+                        let tdTextBtn = try row.select("td.td_btn").text()
+                        if tdTextBtn.contains("경기취소") {
                             print("경기가 없습니다: 경기취소")
                             GameStateModel.shared.isCancelled = true
                             self.isCancelled = true

@@ -95,6 +95,26 @@ struct ContentView: View {
                             }
                         }
                     }
+            } else if gameState.noGame {
+                VStack {
+                    Spacer()
+                    Text("오늘 예정된 경기가 없습니다.")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding()
+                    Spacer()
+                }
+                .frame(width: 200)
+                .onAppear {
+                        DispatchQueue.main.async {
+                            if let button = AppDelegate.instance?.statusBarItem.button {
+                                let image = NSImage(named: NSImage.Name("baseball"))
+                                image?.isTemplate = true
+                                button.image = image
+                                button.title = ""
+                            }
+                        }
+                    }
             } else {
                 VStack {
                     Spacer()
