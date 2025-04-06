@@ -68,8 +68,8 @@ class ApplicationMenu: NSObject {
     @objc func about(sender: NSMenuItem) {
         let creditsText = """
             KBO 실시간 중계 이벤트 추적기
-            개발자: ynjee
             문의: ynjee00@google.com
+            
             """
         
         let options: [NSApplication.AboutPanelOptionKey: Any] = [
