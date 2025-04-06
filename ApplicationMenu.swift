@@ -66,20 +66,12 @@ class ApplicationMenu: NSObject {
     }
     
     @objc func about(sender: NSMenuItem) {
-        let creditsText = """
-            KBO 실시간 중계 이벤트 추적기
-            문의: ynjee00@google.com
-            
-            """
-        
         let options: [NSApplication.AboutPanelOptionKey: Any] = [
                 .applicationName: "KBOPeeker",
                 .applicationVersion: "1.0",
                 .version: "1",
                 .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!,
-                .credits: NSAttributedString(string: creditsText)
             ]
-
 
         NSApp.orderFrontStandardAboutPanel(options: options)
         NSApp.activate(ignoringOtherApps: true)
