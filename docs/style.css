@@ -41,7 +41,7 @@ body {
   font-size: 130%;
 }
 
-.app-title h1 a {
+.app-title h3 a {
   text-decoration: none;
   color: inherit; /* 제목 색상 유지 */
 }
@@ -70,14 +70,18 @@ body {
   border-radius: 50rem;
   width: max-content;
   /* padding: 1rem; */
+  height: 10rem;
 }
 
 #semi-title {
-  font-size: 60%;
-  top: 2rem;
+  font-size: 80%;
 }
 
 #semi-title h1 {
+  font-weight: 800;
+  font-size: 2.4rem;
+}
+#semi-title h3 {
   font-weight: 600;
 }
 
@@ -311,9 +315,17 @@ footer a:hover {
 }
 
 @media (max-width: 850px) {
+  .download-button {
+    font-size: 90%;
+  }
+
   .title,
   #thanks {
     font-size: 90%;
+  }
+
+  #semi-title h1 {
+    font-size: 2rem;
   }
 
   .thanks-main {
@@ -339,23 +351,25 @@ footer a:hover {
     /* font-size: 90%; */
   }
 
+  .download-button {
+    padding: 1.2rem;
+    font-size: 80%;
+  }
+
   .app-title {
-    margin-top: 1rem;
+    height: 70%;
+    margin-top: 2rem;
     padding: 0.5rem 1rem;
     position: static;
     font-size: 90%;
   }
-  /* 
-  #thanks {
-    font-size: 90%;
-  } */
 
   .coffee-button {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
     padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
   }
 
   .intro-image {
@@ -381,34 +395,23 @@ footer a:hover {
   }
 }
 
-@media (max-width: 480px) {
-  .qrcode {
-    width: 7rem;
-  }
-
-  .thanks-section p {
-    font-size: 1rem;
-  }
-
-  .download-button {
-    font-size: 0.95rem;
-    padding: 1rem;
-  }
-
-  header h1 {
-    font-size: 1.6rem;
-  }
-
-  .intro p,
-  .guide p,
-  .guide li {
-    font-size: 0.95rem;
-  }
-}
-
 @media (max-width: 600px) {
+  .hero-banner {
+    margin-top: -5rem;
+  }
+
+  .hero-banner-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
   header h1 {
     font-size: 1.8rem;
+  }
+
+  #semi-title h1 {
+    font-size: 1.7rem;
   }
 
   main {
@@ -416,9 +419,12 @@ footer a:hover {
     margin: 2rem 0;
   }
 
-  .download-button {
-    width: 100%;
-    text-align: center;
+  .coffee-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.6rem;
   }
 
   .thanks-main {
@@ -432,5 +438,45 @@ footer a:hover {
 
   .qrcode {
     width: 8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner {
+    margin-top: -3rem;
+  }
+
+  .app-title {
+    font-size: 70%;
+  }
+
+  #semi-title h1 {
+    font-size: 1.4rem;
+  }
+
+  .coffee-button {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.5rem;
+  }
+
+  .qrcode {
+    width: 7rem;
+  }
+
+  .thanks-section p {
+    font-size: 1rem;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+  }
+
+  .intro p,
+  .guide p,
+  .guide li {
+    font-size: 0.95rem;
   }
 }
