@@ -358,18 +358,19 @@ footer a:hover {
 
   .app-title {
     height: 70%;
-    margin-top: 2rem;
+    margin: 2rem;
     padding: 0.5rem 1rem;
     position: static;
     font-size: 90%;
+    height: 5rem;
   }
 
   .coffee-button {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.7rem;
+    right: 0.7rem;
     padding: 0.4rem 0.8rem;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
   }
 
   .intro-image {
@@ -421,8 +422,8 @@ footer a:hover {
 
   .coffee-button {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.7rem;
+    right: 0.7rem;
     padding: 0.4rem 0.8rem;
     font-size: 0.6rem;
   }
@@ -447,17 +448,26 @@ footer a:hover {
   }
 
   .app-title {
-    font-size: 70%;
+    font-size: 80%;
   }
 
   #semi-title h1 {
     font-size: 1.4rem;
   }
 
+  .app-title {
+    height: 70%;
+    margin: 2rem;
+    padding: 0.5rem 1rem;
+    position: static;
+    font-size: 90%;
+    height: 4rem;
+  }
+
   .coffee-button {
     position: absolute;
-    top: 0.3rem;
-    right: 0.3rem;
+    top: 0.5rem;
+    right: 0.5rem;
     padding: 0.3rem 0.5rem;
     font-size: 0.5rem;
   }
