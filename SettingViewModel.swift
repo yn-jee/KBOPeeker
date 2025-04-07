@@ -35,6 +35,7 @@ class SettingViewModel: ObservableObject {
         trackPointLoss = UserDefaults.standard.bool(forKey: "trackPointLoss")
         alertTime = UserDefaults.standard.integer(forKey: "alertTime")
         blinkIcon = UserDefaults.standard.bool(forKey: "blinkIcon")
+        print("✅ SettingViewModel 초기화됨. selectedTeam: \(selectedTeam)")
     }
 
     func save() {

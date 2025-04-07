@@ -10,6 +10,7 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
 
     func getGameId(for selectedTeam: String, completion: @escaping (Int?) -> Void) {
         self.selectedTeam = selectedTeam
+        print("GameIDFetcher getGameId 호출됨, selectedTeam: \(selectedTeam)")
         self.completionHandler = completion
         self.start()
     }

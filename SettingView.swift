@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 struct SettingView: View {
-    @ObservedObject var viewModel: SettingViewModel
+    @StateObject var viewModel = SettingViewModel.shared
     @ObservedObject var gameState = GameStateModel.shared
     @AppStorage("teamChanged") var teamChanged: Bool = false
     
@@ -37,10 +37,6 @@ struct SettingView: View {
                     .font(.headline)
                 VStack {
                     VStack {
-//                        VStack {
-//                            Toggle("경기 시작", isOn: $viewModel.trackGameStarted)
-//                            Toggle("경기 종료", isOn: $viewModel.trackGameFinished)
-//                        }.frame(width: 70)
                         HStack {
                             Toggle("홈런", isOn: $viewModel.trackHomeRun)
                             Toggle("득점", isOn: $viewModel.trackScore)
@@ -85,7 +81,7 @@ struct SettingView: View {
                     .buttonStyle(.bordered)
                     .padding(.bottom, 10)
                     
-                    Text("+ > Finder에서 KBOPeeker 선택 > 추가")
+                    Text("+ 버튼 > 응용 프로그램\n\t> KBOPeeker 선택 > 추가")
                     Spacer()
                 }
                 .frame(height: 270)
@@ -94,9 +90,23 @@ struct SettingView: View {
             Spacer()
                 
         }
+        .onAppear {
+            DispatchQueue.main.async {
+                print("🟢 SettingView onAppear 진입")
+                if viewModel.selectedTeam.isEmpty {
+                    let storedTeam = UserDefaults.standard.string(forKey: "selectedTeam") ?? "키움 히어로즈"
+                    print("🔁 강제 로드된 팀: [\(storedTeam)]")
+                    viewModel.selectedTeam = storedTeam
+                }
+                print("🟢 viewModel.selectedTeam (onAppear): [\(viewModel.selectedTeam)]")
+            }
+        }
         .onChange(of: viewModel.selectedTeam) {
-            teamChanged = true
-            viewModel.save()
+            DispatchQueue.main.async {
+                teamChanged = true
+                viewModel.save()
+                print("✅ 팀 변경됨 (async): \(viewModel.selectedTeam)")
+            }
         }
         .onChange(of: viewModel.trackGameStarted) {
             viewModel.save()
@@ -140,9 +150,10 @@ struct SettingView: View {
             
             UserDefaults.standard.set(true, forKey: "initialSetupDone")
             NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-//            AppDelegate.instance.startTracking()
             gameState.isFetchingGame = true
-            
+            print("🔴 SettingView onDisappear 진입")
+            print("🔴 viewModel.selectedTeam (onDisappear): [\(viewModel.selectedTeam)]")
+            print("🔴 UserDefaults.selectedTeam: [\(UserDefaults.standard.string(forKey: "selectedTeam") ?? "<nil>")]")
         }
         .frame(width: 470, height: 320)
     }
