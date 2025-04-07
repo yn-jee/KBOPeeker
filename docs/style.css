@@ -103,7 +103,7 @@ body {
   font-size: 0.9rem;
   border: none;
   z-index: 20;
-  transition: background 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .coffee-button:hover {
@@ -119,6 +119,7 @@ main {
   max-width: var(--max-width);
   width: 100%;
   position: relative;
+  transition: all 0.2s ease-in-out;
 }
 
 header {
@@ -152,15 +153,19 @@ header p {
   color: ivory;
   font-weight: 600;
   text-decoration: none;
-  padding: 1.4rem 1.8rem;
+  padding: 1rem 2rem;
   border-radius: 50rem;
-  transition: background 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   margin: 1rem;
   border: 2px solid ivory;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .download-button:hover {
-  background: #da3316;
+  background-color: #da3316;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .version-info {
@@ -191,6 +196,12 @@ section:last-of-type {
 .guide-image,
 .demo {
   width: 20rem;
+}
+
+.setting-demo {
+  width: 75%;
+  display: block;
+  margin: 1rem;
 }
 
 .guide {
@@ -293,7 +304,7 @@ footer a:hover {
   padding: 0.5rem;
   background: white;
   border-radius: 0.5rem;
-  border: 2px solid #217dc1;
+  border: 3px solid #ffacc8;
 }
 
 .qrcode {
@@ -329,7 +340,7 @@ footer a:hover {
   }
 
   .thanks-main {
-    padding: 1rem 0.5rem;
+    padding: 0.9rem 1.8rem;
     max-width: 90%;
   }
 
@@ -352,7 +363,7 @@ footer a:hover {
   }
 
   .download-button {
-    padding: 1.2rem;
+    padding: 0.8rem 1.6rem;
     font-size: 80%;
   }
 
@@ -366,11 +377,9 @@ footer a:hover {
   }
 
   .coffee-button {
-    position: absolute;
-    top: 0.7rem;
-    right: 0.7rem;
+    position: static;
     padding: 0.4rem 0.8rem;
-    font-size: 0.6rem;
+    font-size: 0.8rem;
   }
 
   .intro-image {
@@ -384,6 +393,11 @@ footer a:hover {
     width: 60%;
   }
 
+  .setting-demo {
+    width: 100%;
+    margin-left: -1.2rem;
+  }
+
   .hero-banner {
     position: static;
     width: 100%;
@@ -393,6 +407,10 @@ footer a:hover {
   .hero-banner-img {
     width: 100%;
     height: auto;
+  }
+
+  footer {
+    font-size: 0.8rem;
   }
 }
 
@@ -421,11 +439,9 @@ footer a:hover {
   }
 
   .coffee-button {
-    position: absolute;
-    top: 0.7rem;
-    right: 0.7rem;
+    position: static;
     padding: 0.4rem 0.8rem;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
   }
 
   .thanks-main {
@@ -439,6 +455,10 @@ footer a:hover {
 
   .qrcode {
     width: 8rem;
+  }
+
+  footer {
+    font-size: 0.7rem;
   }
 }
 
@@ -465,11 +485,9 @@ footer a:hover {
   }
 
   .coffee-button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    position: static;
     padding: 0.3rem 0.5rem;
-    font-size: 0.5rem;
+    font-size: 0.7rem;
   }
 
   .qrcode {

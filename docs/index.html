@@ -10,7 +10,6 @@
   </head>
   <body>
     <div class="title">
-      <a class="coffee-button" href="coffee.html"> ☕ 개발자 응원하기 </a>
       <div class="app-title">
         <h1>⚾ KBOPeeker</h1>
         <p class="tagline">KBO 실시간 경기 추적 macOS 메뉴바 앱</p>
@@ -39,13 +38,7 @@
         </p>
         <div class="intro-image">
           <img class="demo" src="Assets/view.png" alt="KBOPeeker Screenshot" />
-          <video
-            class="demo"
-            autoplay
-            loop
-            muted
-            playsinline
-            class="demo-video">
+          <video class="demo" autoplay loop muted playsinline>
             <source
               src="Assets/edited.mp4"
               type="video/mp4"
@@ -75,20 +68,49 @@
           </li>
           <li>
             처음 실행 시 보안 경고가 뜨면,<br />
-            <strong>앱 아이콘을 마우스 오른쪽 클릭</strong>하여
+            <strong
+              >Finder에서 '응용 프로그램' 폴더로 이동해 KBOPeeker 아이콘을
+              마우스 오른쪽 클릭</strong
+            >한 뒤<br />
             <em>"열기"</em>를 선택해 실행해주세요.
           </li>
         </ol>
       </section>
 
       <!-- 자동 실행 설정 -->
-      <!-- <section class="guide">
-        <h2>자동 실행 설정 방법</h2>
+      <section class="guide">
+        <h2>로그인 시 자동 실행 설정 방법</h2>
+        <p>
+          KBOPeeker는 macOS 로그인 시 자동으로 실행되도록 설정할 수 있습니다.<br />
+          이 기능을 사용하면 Mac을 켤 때마다 KBOPeeker를 따로 실행하지 않아도
+          됩니다.
+        </p>
         <ol>
           <li>
+            메인 화면 하단의 <strong>설정</strong> 버튼으로 설정 창을 엽니다.
+          </li>
+          <li>
+            설정 창 하단의 <strong>"로그인 시 자동 실행 설정"</strong> 버튼을
+            클릭합니다.
+          </li>
+          <li>
+            macOS의 시스템 설정이 열리면, <strong>+ 버튼</strong>을 클릭한 뒤<br />
+            '응용 프로그램' 폴더에서 <strong>KBOPeeker</strong>를 선택하여
+            추가합니다.
+          </li>
+          <video class="setting-demo" autoplay loop muted playsinline>
+            <source
+              src="Assets/setting.mp4"
+              type="video/mp4"
+              alt="KBOPeeker Demonstration" />
+            브라우저가 비디오를 지원하지 않습니다.
+          </video>
+          <li>
+            목록에 KBOPeeker가 추가되면 설정이 완료됩니다.<br />
+            이제 Mac을 켤 때 자동으로 KBOPeeker가 실행됩니다.
           </li>
         </ol>
-      </section> -->
+      </section>
 
       <!-- 배포 일지 -->
       <section class="changelog">
@@ -102,11 +124,12 @@
       </section>
     </main>
 
+    <a class="coffee-button" href="coffee.html"> ☕ 개발자 응원하기 </a>
     <!-- 푸터 -->
     <footer>
       <p>&copy; 2025 KBOPeeker. All rights reserved.</p>
       <p>
-        <b>문의사항이나 건의사항이 있으시다면 언제든지 편하게 알려주세요.</b>
+        <b>개선할 점이나 문의사항이 있으시다면 언제든지 편하게 알려주세요.</b>
       </p>
       <p><a href="mailto:ynjee00@gmail.com">ynjee00@gmail.com</a></p>
     </footer>
