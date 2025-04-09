@@ -93,6 +93,24 @@ struct SettingView: View {
                 
             }
             .frame(width: 470, height: 320)
+            
+            Button(action: {
+                let options: [NSApplication.AboutPanelOptionKey: Any] = [
+                        .applicationName: "KBOPeeker",
+                        .applicationVersion: "1.0",
+                        .version: "1",
+                        .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!,
+                    ]
+
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.orderFrontStandardAboutPanel(options: options)
+            }) {
+                Text("KBOPeeker에 대하여")
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 5)
+            .padding(.bottom, 2)
+            
             HStack {
                 
                 if showSaveMessage {

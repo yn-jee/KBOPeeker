@@ -30,12 +30,12 @@ class ApplicationMenu: NSObject {
         menu.addItem(customMenuItem)
         menu.addItem(NSMenuItem.separator())
         
-        let aboutMenuItem = NSMenuItem(title: "KBOPeeker에 대하여",
-                                       action: #selector(about),
-                                       keyEquivalent: "")
-        aboutMenuItem.target = self
-        menu.addItem(aboutMenuItem)
-        
+//        let aboutMenuItem = NSMenuItem(title: "KBOPeeker에 대하여",
+//                                       action: #selector(about),
+//                                       keyEquivalent: "")
+//        aboutMenuItem.target = self
+//        menu.addItem(aboutMenuItem)
+//
         let getGameIDItem = NSMenuItem(title: "경기 찾기",
                                        action: #selector(getGameID),
                                        keyEquivalent: "")
@@ -87,24 +87,38 @@ class ApplicationMenu: NSObject {
             let contentView = SettingView(viewModel: SettingViewModel.shared)
             let hostingController = NSHostingController(rootView: contentView)
 
-            settingsWindow = NSWindow(
-                contentRect: NSMakeRect(0, 0, 400, 500),
-                styleMask: [.titled, .closable, .resizable],
-                backing: .buffered,
-                defer: false
-            )
-            settingsWindow?.isReleasedWhenClosed = false
-            settingsWindow?.contentView = hostingController.view
-            settingsWindow?.title = "설정"
-            settingsWindow?.level = .floating
-            settingsWindow?.center()
-            
-            NotificationCenter.default.addObserver(
-                forName: NSWindow.willCloseNotification,
-                object: settingsWindow,
-                queue: .main
-            ) { [weak self] _ in
-                self?.settingsWindow = nil
+            // 창 크기 설정
+            let windowWidth: CGFloat = 470
+            let windowHeight: CGFloat = 500
+
+            // 메인 스크린의 가시 프레임 가져오기
+            if let screen = NSScreen.main {
+                let screenFrame = screen.visibleFrame
+
+                // 우측 상단 좌표 계산
+                let originX = screenFrame.maxX - windowWidth - 50
+                let originY = screenFrame.maxY - windowHeight - 50
+
+                // 창 생성 및 위치 설정
+                settingsWindow = NSWindow(
+                    contentRect: NSRect(x: originX, y: originY, width: windowWidth, height: windowHeight),
+                    styleMask: [.titled, .closable, .resizable],
+                    backing: .buffered,
+                    defer: false
+                )
+                settingsWindow?.contentView = hostingController.view
+                settingsWindow?.title = "설정"
+                settingsWindow?.level = .floating
+                settingsWindow?.isReleasedWhenClosed = false
+
+                // 창이 닫힐 때 참조 해제
+                NotificationCenter.default.addObserver(
+                    forName: NSWindow.willCloseNotification,
+                    object: settingsWindow,
+                    queue: .main
+                ) { [weak self] _ in
+                    self?.settingsWindow = nil
+                }
             }
         }
         settingsWindow?.makeKeyAndOrderFront(nil)
