@@ -207,6 +207,10 @@ struct ContentView: View {
                     .padding(.top, 7)
                     .font(.system(size: 12, weight: .bold))
                 Text("\(gameState.stadiumName)")
+                    .font(.system(size: 11))
+                    .opacity(0.7)
+                Text("투수 : \(gameState.pitcherName)  |  타자 : \(gameState.batterName)")
+                    .padding(.top, 1)
                 HStack {
                     Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중\(waitingDots)" : "📢 \(eventModel.latestEvent)")
                         .font(.system(size: 11))
@@ -220,7 +224,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.top, 4)
-                .frame(height: 27)
+                .frame(height: 24)
                 
                 // 경기 정보
                 HStack(alignment: .center) {

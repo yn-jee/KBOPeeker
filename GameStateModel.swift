@@ -32,6 +32,8 @@ class GameStateModel: ObservableObject {
     @Published var isHome: Bool = false
     @Published var opponentTeamName: String = ""
     @Published var stadiumName: String = ""
+    @Published var pitcherName: String = ""
+    @Published var batterName: String = ""
     @Published var currentInning: String = ""
     @Published var teamScores: [String: Int] = [:]
 

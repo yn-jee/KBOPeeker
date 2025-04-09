@@ -192,6 +192,13 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
             
             gameState.updateInning(isTop: isTopInning, number: inningNumber)
             
+            // 투수 및 타자 이름 파싱
+            let pitcherName = try doc.select("div.state-box div.pitcher p.name").first()?.text() ?? ""
+            let batterName = try doc.select("div.state-box div.hitter p.name").first()?.text() ?? ""
+            gameState.pitcherName = pitcherName
+            gameState.batterName = batterName
+            print("투수: \(pitcherName), 타자: \(batterName)")
+            
             // 현재 공격 중인 팀 판별
             let teamSpans = try doc.select("div.scorebox_team span.txt_team")
             guard teamSpans.count >= 2 else { return }
