@@ -181,6 +181,7 @@ section {
 }
 section:last-of-type {
   border-bottom: none;
+  padding-bottom: 1.2rem;
 }
 
 /* #semi-paragraph {
@@ -251,6 +252,46 @@ section:last-of-type {
   font-size: 1.6rem;
   margin-bottom: 1rem;
   color: var(--navy);
+}
+
+.changelog details {
+  margin-bottom: 2rem;
+  padding: 0.5rem 1rem;
+  background: lemonchiffon;
+  border-radius: 0.5rem;
+}
+
+.changelog details:last-of-type {
+  margin-bottom: 0;
+}
+
+.changelog summary {
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.5rem;
+}
+
+.changelog ul {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0rem;
+}
+
+.changelog li {
+  margin-bottom: 0.4rem;
+  line-height: 1.6;
+}
+
+.changelog a {
+  display: inline-block;
+  margin-top: 0.8rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.changelog a:hover {
+  text-decoration: underline;
 }
 
 footer {
