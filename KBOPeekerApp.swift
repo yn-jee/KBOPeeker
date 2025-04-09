@@ -18,7 +18,7 @@ struct KBOPeekerApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    static private(set) var instance: AppDelegate!
+    static var instance: AppDelegate!
     lazy var statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var menu: ApplicationMenu!
     var fetcher: GameIDFetcher?
@@ -156,7 +156,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         //     return
                         // }
                         guard let self = self else { return }
-
+                        self.lastTrackingStartTime = Date()
+                    
                         var displayText = "KBO 이벤트"
                         
                         let priorityOrder = ["홈런", "득점", "루타", "볼넷", "몸에 맞는 볼", "아웃"]
@@ -168,7 +169,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //                                print("⚠️ 이전 이벤트와 동일하므로 무시됨: \(eventText)")
 //                                return
 //                            }
-////                            
+////
 //                            if newPriority > lastPriority {
 //                                print("🔁 낮은 우선순위 이벤트 무시됨: \(eventText)")
 //                                return
@@ -238,8 +239,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         
                         let totalDuration = Double(self.viewModel.alertTime)
                         let timeSinceStart = Date().timeIntervalSince(self.lastTrackingStartTime ?? Date())
-                        if timeSinceStart < 3 {
-                            print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
+                        if timeSinceStart < 5 {
+                            print("⏱️ 크롤링 시작 후 5초 이내 감지된 이벤트 무시: \(eventText)")
                             return
                         }
                         self.crawler?.pause(for: totalDuration)
@@ -341,25 +342,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             let myScore = GameStateModel.shared.teamScores[selected] ?? 0
                             let opponentScore = GameStateModel.shared.teamScores[opponent] ?? 0
                             
-                            let scoreText = " \(myScore) : \(opponentScore) "  // 공백으로 여백 줘서 강조
+                            let homeLogo = NSImage(named: NSImage.Name(selected))
+                            let awayLogo = NSImage(named: NSImage.Name(opponent))
+                            let scoreString = " \(myScore) : \(opponentScore) "
+                            let scoreAttr = NSAttributedString(string: scoreString, attributes: [
+                                .font: NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+                            ])
+
+                            let imageAttachment1 = NSTextAttachment()
+                            imageAttachment1.image = homeLogo
+                            imageAttachment1.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                            let imageAttachment2 = NSTextAttachment()
+                            imageAttachment2.image = awayLogo
+                            imageAttachment2.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+
+                            let attributedString = NSMutableAttributedString()
+                            attributedString.append(NSAttributedString(attachment: imageAttachment1))
+                            attributedString.append(scoreAttr)
+                            attributedString.append(NSAttributedString(attachment: imageAttachment2))
+
                             if let button = self.statusBarItem.button {
-                                button.font = NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
-                                button.title = scoreText
+                                button.image = nil
+                                button.attributedTitle = attributedString
                             }
-                            print(scoreText)
 
                             DispatchQueue.main.async {
                                 if let button = self.statusBarItem.button {
                                     button.image = nil
-                                    button.title = scoreText
+                                    button.attributedTitle = attributedString
                                 }
                             }
                             self.isGameActive = true
                             GameStateModel.shared.isFetchingGame = false
                         }
                     }
-                    self.lastTrackingStartTime = Date()
                     self.crawler?.start()
+//                    self.lastTrackingStartTime = Date()
                 } else {
                     if attempt < maxAttempts {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {

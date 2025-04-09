@@ -6,3 +6,7 @@ Release/
 *.xcworkspace
 *.xcodeproj/project.xcworkspace/xcuserdata/
 " > .gitignore
+.DS_Store
+docs/.DS_Store
+docs/Assets/.DS_Store
+.gitignore

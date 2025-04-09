@@ -456,13 +456,13 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     }
                 }
                 // Fallback: detect final out when inning changes and current batter block may be gone
-                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
-                    if highestPriorityEvent == nil {
-                        if outCount == 3 {
-                            highestPriorityEvent = "이닝 종료: 세 번째 아웃"
-                        }
-                    }
-                }
+//                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
+//                    if highestPriorityEvent == nil {
+//                        if outCount == 3 {
+//                            highestPriorityEvent = "이닝 종료: 세 번째 아웃"
+//                        }
+//                    }
+//                }
                 // Fallback: detect score change via number comparison
                 if highestPriorityEvent == nil {
                     let currentMyScore = scoreForTeam(gameState.selectedTeamName)

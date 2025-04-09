@@ -26,6 +26,7 @@ struct ContentView: View {
     @ObservedObject var viewModel: SettingViewModel
     @EnvironmentObject var eventModel: EventModel
     @ObservedObject var gameState = GameStateModel.shared
+    @State private var waitingDots: String = ""
     
     
     var body: some View {
@@ -216,12 +217,26 @@ struct ContentView: View {
                     .font(.system(size: 12, weight: .bold))
                 Text("\(gameState.stadiumName)")
                 
-                Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중..." : "📢 \(eventModel.latestEvent)")
+                Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중\(waitingDots)" : "📢 \(eventModel.latestEvent)")
                     .font(.system(size: 11))
                     .padding(.top, 4)
                     .multilineTextAlignment(.center)
                     .frame(height: 27)
                     .opacity(eventModel.latestEvent.isEmpty ? 0.5 : 1)
+                    .onAppear {
+                        Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
+                            switch waitingDots {
+                            case "":
+                                waitingDots = "."
+                            case ".":
+                                waitingDots = ".."
+                            case "..":
+                                waitingDots = "..."
+                            default:
+                                waitingDots = ""
+                            }
+                        }
+                    }
                 
                 // 경기 정보
                 HStack(alignment: .center) {
@@ -265,21 +280,17 @@ struct ContentView: View {
                         }
                     }
                     
-                    let burgundy = Color(#colorLiteral(red: 0.4392156899, green: 0.01176470611, blue: 0.1921568662, alpha: 1))
                     // 이닝
                     VStack(spacing: 4) {
                         if gameState.isTopInning {
                             Text("▲")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(burgundy)
                         }
                         Text("\(gameState.inningNumber)")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(burgundy)
                         if !gameState.isTopInning {
                             Text("▼")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(burgundy)
                         }
                     }
                     .frame(width: 20)

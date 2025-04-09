@@ -21,6 +21,7 @@ class SettingViewModel: ObservableObject {
     @Published var trackPointLoss: Bool
     @Published var alertTime: Int
     @Published var blinkIcon: Bool
+    @Published var showLogo: Bool
 
 
     private init() {
@@ -35,6 +36,7 @@ class SettingViewModel: ObservableObject {
         trackPointLoss = UserDefaults.standard.bool(forKey: "trackPointLoss")
         alertTime = UserDefaults.standard.integer(forKey: "alertTime")
         blinkIcon = UserDefaults.standard.bool(forKey: "blinkIcon")
+        showLogo = UserDefaults.standard.bool(forKey: "showLogo")
         print("✅ SettingViewModel 초기화됨. selectedTeam: \(selectedTeam)")
     }
 
@@ -50,5 +52,7 @@ class SettingViewModel: ObservableObject {
         UserDefaults.standard.set(trackPointLoss, forKey: "trackPointLoss")
         UserDefaults.standard.set(alertTime, forKey: "alertTime")
         UserDefaults.standard.set(blinkIcon, forKey: "blinkIcon")
+        UserDefaults.standard.set(showLogo, forKey: "showLogo")
+        AppDelegate.instance.lastTrackingStartTime = Date()
     }
 }
