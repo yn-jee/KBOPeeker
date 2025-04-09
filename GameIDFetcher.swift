@@ -79,6 +79,7 @@ class GameIDFetcher: NSObject, WKNavigationDelegate {
                            let gameId = Int(gameIdStr) {
                             print("Game ID 추출됨: \(gameId)")
                             self.completionHandler?(gameId)
+                            AppDelegate.instance.lastTrackingStartTime = Date()
                             return
                         }
 

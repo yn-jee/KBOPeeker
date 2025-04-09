@@ -207,14 +207,20 @@ struct ContentView: View {
                     .padding(.top, 7)
                     .font(.system(size: 12, weight: .bold))
                 Text("\(gameState.stadiumName)")
-                
-                Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중\(waitingDots)" : "📢 \(eventModel.latestEvent)")
-                    .font(.system(size: 11))
-                    .padding(.top, 4)
-                    .multilineTextAlignment(.center)
-                    .frame(height: 27)
-                    .opacity(eventModel.latestEvent.isEmpty ? 0.5 : 1)
-                    .id(refreshID)
+                HStack {
+                    Text(eventModel.latestEvent.isEmpty ? "📢 실시간 이벤트 대기 중\(waitingDots)" : "📢 \(eventModel.latestEvent)")
+                        .font(.system(size: 11))
+                        .multilineTextAlignment(.center)
+                        .opacity(eventModel.latestEvent.isEmpty ? 0.5 : 1)
+                        .id(refreshID)
+                    
+                    if eventModel.latestEvent.isEmpty {
+                        ProgressView()
+                            .scaleEffect(0.3)
+                    }
+                }
+                .padding(.top, 4)
+                .frame(height: 27)
                 
                 // 경기 정보
                 HStack(alignment: .center) {
@@ -345,24 +351,6 @@ struct ContentView: View {
                 .padding(.top, 5)
                 .padding(.bottom, 8)
             }
-//            .task {
-//                while eventModel.latestEvent.isEmpty {
-//                    await MainActor.run {
-//                        switch waitingDots {
-//                        case "":
-//                            waitingDots = "."
-//                        case ".":
-//                            waitingDots = ".."
-//                        case "..":
-//                            waitingDots = "..."
-//                        default:
-//                            waitingDots = ""
-//                        }
-//                        refreshID = UUID()
-//                    }
-//                    try? await Task.sleep(nanoseconds: 700_000_000)
-//                }
-//            }
             .frame(width: 200)
         }
     }

@@ -133,116 +133,17 @@ struct SettingView: View {
                 print("✅ 팀 변경됨 (async): \(viewModel.selectedTeam)")
             }
         }
-        .onChange(of: viewModel.trackGameStarted) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackGameFinished) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackHit) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackBB) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackHomeRun) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackScore) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackOut) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.trackPointLoss) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.blinkIcon) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
-        .onChange(of: viewModel.alertTime) {
-            viewModel.save()
-            withAnimation {
-                showSaveMessage = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                withAnimation {
-                    showSaveMessage = false
-                }
-            }
-        }
+        .onChange(of: viewModel.trackGameStarted) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackGameFinished) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackHit) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackBB) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackHomeRun) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackScore) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackOut) { _ in handleSettingChange() }
+        .onChange(of: viewModel.trackPointLoss) { _ in handleSettingChange() }
+        .onChange(of: viewModel.blinkIcon) { _ in handleSettingChange() }
+        .onChange(of: viewModel.showLogo) { _ in handleSettingChange() }
+        .onChange(of: viewModel.alertTime) { _ in handleSettingChange() }
         .onDisappear {
             print("Saved Preferences:")
             print("Team: \(UserDefaults.standard.string(forKey: "selectedTeam") ?? "")")
@@ -262,6 +163,18 @@ struct SettingView: View {
             print("🔴 SettingView onDisappear 진입")
             print("🔴 viewModel.selectedTeam (onDisappear): [\(viewModel.selectedTeam)]")
             print("🔴 UserDefaults.selectedTeam: [\(UserDefaults.standard.string(forKey: "selectedTeam") ?? "<nil>")]")
+        }
+    }
+    
+    private func handleSettingChange() {
+        viewModel.save()
+        withAnimation {
+            showSaveMessage = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation {
+                showSaveMessage = false
+            }
         }
     }
     

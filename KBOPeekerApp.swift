@@ -229,7 +229,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         let opponent = GameStateModel.shared.opponentTeamName
                         let myScore = GameStateModel.shared.teamScores[selected] ?? 0
                         let opponentScore = GameStateModel.shared.teamScores[opponent] ?? 0
-                        let scoreText = " \(myScore) : \(opponentScore) "
+                        
+                        let homeLogo = NSImage(named: NSImage.Name(selected))
+                        let awayLogo = NSImage(named: NSImage.Name(opponent))
+                        let scoreString = " \(myScore) : \(opponentScore) "
+                        let scoreAttr = NSAttributedString(string: scoreString, attributes: [
+                            .font: NSFont.monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+                        ])
+
+                        let imageAttachment1 = NSTextAttachment()
+                        imageAttachment1.image = homeLogo
+                        imageAttachment1.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                        let imageAttachment2 = NSTextAttachment()
+                        imageAttachment2.image = awayLogo
+                        imageAttachment2.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+
+                        let attributedString = NSMutableAttributedString()
+                        if self.viewModel.showLogo {
+                            attributedString.append(NSAttributedString(attachment: imageAttachment1))
+                        }
+                        attributedString.append(scoreAttr)
+                        if self.viewModel.showLogo {
+                            attributedString.append(NSAttributedString(attachment: imageAttachment2))
+                        }
+
+                        if let button = self.statusBarItem.button {
+                            button.image = nil
+                            button.attributedTitle = attributedString
+                        }
+
+                        DispatchQueue.main.async {
+                            if let button = self.statusBarItem.button {
+                                button.image = nil
+                                button.attributedTitle = attributedString
+                            }
+                        }
+                        
                         
                         print("🪧 버튼에 표시될 이벤트 텍스트: \(displayText)")
                         
@@ -276,7 +311,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
  
                                         if self.isGameActive {
                                             button.image = nil
-                                            button.title = scoreText
+                                            button.attributedTitle = attributedString
                                         } else {
                                             button.title = ""
                                             let image = NSImage(named: NSImage.Name("baseball"))
@@ -303,7 +338,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
                             if self.isGameActive {
                                 button.image = nil
-                                button.title = scoreText
+                                button.attributedTitle = attributedString
                             } else {
                                 button.title = ""
                                 let image = NSImage(named: NSImage.Name("baseball"))
@@ -357,9 +392,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             imageAttachment2.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
 
                             let attributedString = NSMutableAttributedString()
-                            attributedString.append(NSAttributedString(attachment: imageAttachment1))
+                            if self.viewModel.showLogo {
+                                attributedString.append(NSAttributedString(attachment: imageAttachment1))
+                            }
                             attributedString.append(scoreAttr)
-                            attributedString.append(NSAttributedString(attachment: imageAttachment2))
+                            if self.viewModel.showLogo {
+                                attributedString.append(NSAttributedString(attachment: imageAttachment2))
+                            }
 
                             if let button = self.statusBarItem.button {
                                 button.image = nil

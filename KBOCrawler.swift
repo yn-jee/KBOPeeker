@@ -16,6 +16,7 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
     private var previousBatterName: String?
     private var previousMyScore: Int?
     private var previousOpponentScore: Int?
+    private var lastSentEventText: String?
 
     private let gameState = GameStateModel.shared
     
@@ -456,13 +457,13 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     }
                 }
                 // Fallback: detect final out when inning changes and current batter block may be gone
-//                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
-//                    if highestPriorityEvent == nil {
-//                        if outCount == 3 {
-//                            highestPriorityEvent = "이닝 종료: 세 번째 아웃"
-//                        }
-//                    }
-//                }
+                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
+                    if highestPriorityEvent == nil {
+                        if outCount == 3 {
+                            highestPriorityEvent = "이닝 종료: 세 번째 아웃"
+                        }
+                    }
+                }
                 // Fallback: detect score change via number comparison
                 if highestPriorityEvent == nil {
                     let currentMyScore = scoreForTeam(gameState.selectedTeamName)
@@ -488,8 +489,13 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
 
                 // 최종 이벤트 실행
                 if let finalEvent = highestPriorityEvent {
-                    print("🐛 AppDelegate에 전달될 eventText: \(finalEvent)")
-                    self.onEventDetected?(finalEvent)
+                    if finalEvent != self.lastSentEventText {
+                        print("🐛 AppDelegate에 전달될 eventText: \(finalEvent)")
+                        self.onEventDetected?(finalEvent)
+                        self.lastSentEventText = finalEvent
+                    } else {
+                        print("⏩ 이전과 동일한 이벤트이므로 무시됨: \(finalEvent)")
+                    }
                 }
             }
             
