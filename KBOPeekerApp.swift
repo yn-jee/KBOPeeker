@@ -156,7 +156,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         //     return
                         // }
                         guard let self = self else { return }
-                        self.lastTrackingStartTime = Date()
+//                        self.lastTrackingStartTime = Date()
                     
                         var displayText = "KBO 이벤트"
                         
@@ -239,8 +239,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         
                         let totalDuration = Double(self.viewModel.alertTime)
                         let timeSinceStart = Date().timeIntervalSince(self.lastTrackingStartTime ?? Date())
-                        if timeSinceStart < 5 {
-                            print("⏱️ 크롤링 시작 후 5초 이내 감지된 이벤트 무시: \(eventText)")
+                        if timeSinceStart < 3 {
+                            print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
                             return
                         }
                         self.crawler?.pause(for: totalDuration)

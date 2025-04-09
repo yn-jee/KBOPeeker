@@ -27,6 +27,7 @@ struct ContentView: View {
     @EnvironmentObject var eventModel: EventModel
     @ObservedObject var gameState = GameStateModel.shared
     @State private var waitingDots: String = ""
+    @State private var refreshID = UUID()
     
     
     var body: some View {
@@ -43,16 +44,6 @@ struct ContentView: View {
                 Spacer()
             }
             .frame(width: 200)
-            .onAppear {
-                    DispatchQueue.main.async {
-                        if let button = AppDelegate.instance?.statusBarItem.button {
-                            let image = NSImage(named: NSImage.Name("baseball"))
-                            image?.isTemplate = true
-                            button.image = image
-                            button.title = ""
-                        }
-                    }
-                }
         }
         else if AppDelegate.instance?.gameURL == nil {
             if AppDelegate.instance?.hasExceededMaxAttempts == true {
@@ -223,20 +214,7 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
                     .frame(height: 27)
                     .opacity(eventModel.latestEvent.isEmpty ? 0.5 : 1)
-                    .onAppear {
-                        Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
-                            switch waitingDots {
-                            case "":
-                                waitingDots = "."
-                            case ".":
-                                waitingDots = ".."
-                            case "..":
-                                waitingDots = "..."
-                            default:
-                                waitingDots = ""
-                            }
-                        }
-                    }
+                    .id(refreshID)
                 
                 // 경기 정보
                 HStack(alignment: .center) {
@@ -367,6 +345,24 @@ struct ContentView: View {
                 .padding(.top, 5)
                 .padding(.bottom, 8)
             }
+//            .task {
+//                while eventModel.latestEvent.isEmpty {
+//                    await MainActor.run {
+//                        switch waitingDots {
+//                        case "":
+//                            waitingDots = "."
+//                        case ".":
+//                            waitingDots = ".."
+//                        case "..":
+//                            waitingDots = "..."
+//                        default:
+//                            waitingDots = ""
+//                        }
+//                        refreshID = UUID()
+//                    }
+//                    try? await Task.sleep(nanoseconds: 700_000_000)
+//                }
+//            }
             .frame(width: 200)
         }
     }
