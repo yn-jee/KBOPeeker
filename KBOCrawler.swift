@@ -145,18 +145,20 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                 return
             }
             
+            if gameState.currentInning.contains("경기취소") {
+                print("경기가 취소되었습니다.")
+                GameStateModel.shared.isFetchingGame = false
+                self.stop()
+                return
+            }
+            
             if gameState.currentInning.contains("경기 전") {
                 print("경기 시작 전입니다.")
                 GameStateModel.shared.isFetchingGame = false
                 self.stop()
         
                 DispatchQueue.main.async {
-                    if let button = AppDelegate.instance?.statusBarItem.button {
-                        let image = NSImage(named: NSImage.Name("baseball"))
-                        image?.isTemplate = true
-                        button.image = image
-                        button.title = ""
-                    }
+                    AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                 }
                 return
             }
@@ -304,81 +306,7 @@ class KBOCrawler: NSObject, WKNavigationDelegate {
                     print("🕓 이전 타자 우선순위 이벤트: \(result)")
                 }
             }
-//
-//            // Determine highest priority event
-//            var highestPriorityEvent: String?
-//
-//            if let setting = AppDelegate.instance?.viewModel {
-//                print("isOurTeamAtBat: \(isOurTeamAtBat), outCount: \(outCount), previousOutCount: \(previousOutCount)")
-//
-//                // 득점 감지
-//                if setting.trackScore && scoreForTeam(gameState.selectedTeamName) > previousMyScoreValue {
-//                    let event = "득점!"
-//                    self.onEventDetected?(event)
-//                }
-//
-//                // 실점 감지
-//                if setting.trackPointLoss && scoreForTeam(gameState.opponentTeamName) > previousOpponentScoreValue {
-//                    let event = "실점!"
-//                    print("🐛 AppDelegate에 전달될 eventText: \(event)")
-//                    self.onEventDetected?(event)
-//                }
-//
-//                // 타자 이벤트 전체 텍스트 기준으로 판단
-//                let fullEventTexts: [String] = try {
-//                    let targetDivs = historyDivs.filter {
-//                        let name = (try? $0.select("strong.txt_player").text()) ?? ""
-//                        return name == (batterChanged ? (previousName ?? "") : currentBatterName)
-//                    }
-//
-//                    guard let div = targetDivs.first else { return [] }
-//
-//                    guard let elements = try? div.select("div.item_history") else { return [] }
-//                    let historyItems = Array(elements)
-//                    var lines: [String] = []
-//
-//                    for item in historyItems {
-//                        if let spans = try? item.select("span.txt_g") {
-//                            for span in spans {
-//                                let text = try span.text()
-//                                if !text.isEmpty {
-//                                    lines.append(text)
-//                                }
-//                            }
-//                        }
-//                    }
-//                    return lines
-//                }()
-//
-//                for eventLine in fullEventTexts {
-//                    if setting.trackHomeRun && eventLine.contains("홈런") {
-//                        highestPriorityEvent = "홈런! \(eventLine)"
-//                        break
-//                    } else if setting.trackScore && eventLine.contains("홈인") {
-//                        highestPriorityEvent = "득점! \(eventLine)"
-//                        break
-//                    } else if setting.trackHit && (eventLine.contains("안타") || eventLine.contains("루타")) {
-//                        highestPriorityEvent = "안타 발생: \(eventLine)"
-//                        break
-//                    } else if setting.trackBB && (eventLine.contains("볼넷") || eventLine.contains("몸에 맞는 볼")) {
-//                        highestPriorityEvent = "사사구 발생: \(eventLine)"
-//                        break
-//                    }
-//                }
-//
-//                if setting.trackOut && isOurTeamAtBat && outCount > previousOutCount {
-//                    if highestPriorityEvent == nil {
-//                        highestPriorityEvent = "아웃"
-//                    }
-//                }
-//
-//                // 최종 이벤트 실행
-//                if let finalEvent = highestPriorityEvent {
-//                    print("🐛 AppDelegate에 전달될 eventText: \(finalEvent)")
-//                    self.onEventDetected?(finalEvent)
-//                }
-//            }
-            
+
             
             // Determine highest priority event
             var highestPriorityEvent: String?

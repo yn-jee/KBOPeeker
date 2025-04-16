@@ -32,18 +32,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var isAnimatingEvent: Bool = false
     var lastEventText: String? = nil
     var lastTrackingStartTime: Date?
+    var retryTimer: Timer?
+    var scoreboardTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.instance = self
         GameStateModel.shared.isFetchingGame = true
         
-        if let button = self.statusBarItem.button {
-            button.title = ""
-            let image = NSImage(named: NSImage.Name("baseball"))
-            image?.isTemplate = true
-            button.image = image
-        }
-        self.menu = ApplicationMenu()
+        AppDelegate.instance?.updateStatusBarWithBaseballIcon()
+        self.menu = ApplicationMenu.shared
         statusBarItem.menu = self.menu.createMenu()
 
         print("초기 설정값 로드:")
@@ -66,6 +63,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         startTracking()
+        startRetryTimer()
+        startScoreboardTimer()
     }
 
     @objc func handlePreferencesSaved() {
@@ -108,12 +107,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         guard let button = self.statusBarItem.button else { return }
         
-        if let button = self.statusBarItem.button {
-            button.title = ""
-            let image = NSImage(named: NSImage.Name("baseball"))
-            image?.isTemplate = true
-            button.image = image
-        }
+        AppDelegate.instance?.updateStatusBarWithBaseballIcon()
         
         fetcher = GameIDFetcher()
         let selectedTeam = UserDefaults.standard.string(forKey: "selectedTeam") ?? ""
@@ -239,10 +233,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                         let imageAttachment1 = NSTextAttachment()
                         imageAttachment1.image = homeLogo
-                        imageAttachment1.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                        imageAttachment1.bounds = CGRect(x: 0, y: -3, width: 14, height: 14)
                         let imageAttachment2 = NSTextAttachment()
                         imageAttachment2.image = awayLogo
-                        imageAttachment2.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
+                        imageAttachment2.bounds = CGRect(x: 0, y: -3, width: 14, height: 14)
 
                         let attributedString = NSMutableAttributedString()
                         if self.viewModel.showLogo {
@@ -274,8 +268,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         
                         let totalDuration = Double(self.viewModel.alertTime)
                         let timeSinceStart = Date().timeIntervalSince(self.lastTrackingStartTime ?? Date())
-                        if timeSinceStart < 3 {
-                            print("⏱️ 크롤링 시작 후 3초 이내 감지된 이벤트 무시: \(eventText)")
+                        if timeSinceStart < 5 {
+                            print("⏱️ 크롤링 시작 후 5초 이내 감지된 이벤트 무시: \(eventText)")
                             return
                         }
                         self.crawler?.pause(for: totalDuration)
@@ -313,10 +307,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                             button.image = nil
                                             button.attributedTitle = attributedString
                                         } else {
-                                            button.title = ""
-                                            let image = NSImage(named: NSImage.Name("baseball"))
-                                            image?.isTemplate = true
-                                            button.image = image
+                                            AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                                         }
                                     }
                                     return
@@ -340,10 +331,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 button.image = nil
                                 button.attributedTitle = attributedString
                             } else {
-                                button.title = ""
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
+                                AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                             }
                             self.isAnimatingEvent = false
                             self.lastEventText = nil
@@ -363,10 +351,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         print("상대팀: \(opponent)")
                         DispatchQueue.main.async {
                             if let button = self.statusBarItem.button {
-                                button.title = ""
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
+                                AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                             }
                         }
                         if let crawler = self.crawler {
@@ -435,5 +420,57 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         GameStateModel.shared.isFetchingGame = true
         tryFetchGameId()
+    }
+    
+    func startRetryTimer() {
+        retryTimer?.invalidate()
+        retryTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            let minute = Calendar.current.component(.minute, from: Date())
+            if (0...5).contains(minute) || (30...35).contains(minute) {
+                if GameStateModel.shared.isFetchingGame == false {
+                    print("⏰ \(minute)분 — 정기 재시도 트리거")
+                    self.startTracking()
+                }
+            }
+        }
+        RunLoop.main.add(retryTimer!, forMode: .common)
+    }
+
+    func startScoreboardTimer() {
+        scoreboardTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour >= 12 && hour <= 23 {
+            if let submenu = ApplicationMenu.shared.scoreboardSubmenu {
+                print("📊 자동 스코어보드 갱신 (\(Date()))")
+                ApplicationMenu.shared.updateScoreboardMenu(submenu)
+            }
+        }
+        }
+        RunLoop.main.add(scoreboardTimer!, forMode: .common)
+    }
+    
+    func updateStatusBarWithBaseballIcon() {
+        guard let button = self.statusBarItem.button else { return }
+        guard let originalImage = NSImage(named: NSImage.Name("baseball")) else { return }
+
+        originalImage.isTemplate = true
+        let size = NSSize(width: 18, height: 18)
+        let resizedImage = NSImage(size: size)
+        resizedImage.lockFocus()
+        originalImage.draw(in: NSRect(origin: .zero, size: size),
+                           from: .zero,
+                           operation: .sourceOver,
+                           fraction: 1.0)
+        resizedImage.unlockFocus()
+
+        resizedImage.isTemplate = true
+        button.image = resizedImage
+        button.title = ""
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        retryTimer?.invalidate()
+        scoreboardTimer?.invalidate()
     }
 }

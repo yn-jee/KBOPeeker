@@ -84,7 +84,7 @@ struct SettingView: View {
                             Label("로그인 시 자동 실행 설정", systemImage: "gearshape")
                         }
                         
-                        Text("+ 버튼 > 응용 프로그램\n\t> KBOPeeker 선택 > 추가")
+                        Text("+ 버튼 > 응용 프로그램\n\t> KBOPeeker 앱 선택 > 열기")
                         Spacer()
                     }
                     .frame(width: 250, height: 280)
@@ -98,7 +98,7 @@ struct SettingView: View {
                 let options: [NSApplication.AboutPanelOptionKey: Any] = [
                         .applicationName: "KBOPeeker",
                         .applicationVersion: "1.0",
-                        .version: "1",
+                        .version: "2",
                         .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!,
                     ]
 
@@ -150,6 +150,7 @@ struct SettingView: View {
                 }
                 print("✅ 팀 변경됨 (async): \(viewModel.selectedTeam)")
             }
+            gameState.isFetchingGame = true
         }
         .onChange(of: viewModel.trackGameStarted) { _ in handleSettingChange() }
         .onChange(of: viewModel.trackGameFinished) { _ in handleSettingChange() }
@@ -177,7 +178,7 @@ struct SettingView: View {
             
             UserDefaults.standard.set(true, forKey: "initialSetupDone")
             NotificationCenter.default.post(name: Notification.Name("PreferencesSaved"), object: nil)
-            gameState.isFetchingGame = true
+//            gameState.isFetchingGame = true
             print("🔴 SettingView onDisappear 진입")
             print("🔴 viewModel.selectedTeam (onDisappear): [\(viewModel.selectedTeam)]")
             print("🔴 UserDefaults.selectedTeam: [\(UserDefaults.standard.string(forKey: "selectedTeam") ?? "<nil>")]")

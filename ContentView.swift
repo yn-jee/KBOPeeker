@@ -59,18 +59,18 @@ struct ContentView: View {
                 .frame(width: 200)
                 .onAppear {
                         DispatchQueue.main.async {
-                            if let button = AppDelegate.instance?.statusBarItem.button {
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
-                                button.title = ""
-                            }
+                            AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                         }
                     }
             } else if gameState.isCancelled {
                 VStack {
                     Spacer()
-                    Text("오늘 \(teamNames[viewModel.selectedTeam] ?? viewModel.selectedTeam) 경기는 취소되었습니다.")
+                    Text("\(gameState.selectedTeamName) VS \(gameState.opponentTeamName)")
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .padding(.bottom, 8)
+                        .opacity(0.7)
+                    Text("오늘 경기는 취소되었습니다.")
                         .multilineTextAlignment(.center)
                         .font(.headline)
                         .padding()
@@ -79,12 +79,7 @@ struct ContentView: View {
                 .frame(width: 200)
                 .onAppear {
                         DispatchQueue.main.async {
-                            if let button = AppDelegate.instance?.statusBarItem.button {
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
-                                button.title = ""
-                            }
+                            AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                         }
                     }
             } else if gameState.noGame {
@@ -99,12 +94,7 @@ struct ContentView: View {
                 .frame(width: 200)
                 .onAppear {
                         DispatchQueue.main.async {
-                            if let button = AppDelegate.instance?.statusBarItem.button {
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
-                                button.title = ""
-                            }
+                            AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                         }
                     }
             } else {
@@ -122,12 +112,7 @@ struct ContentView: View {
                 .frame(width: 200)
                 .onAppear {
                         DispatchQueue.main.async {
-                            if let button = AppDelegate.instance?.statusBarItem.button {
-                                let image = NSImage(named: NSImage.Name("baseball"))
-                                image?.isTemplate = true
-                                button.image = image
-                                button.title = ""
-                            }
+                            AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                         }
                     }
             }
@@ -148,12 +133,7 @@ struct ContentView: View {
             .frame(width: 200)
             .onAppear {
                     DispatchQueue.main.async {
-                        if let button = AppDelegate.instance?.statusBarItem.button {
-                            let image = NSImage(named: NSImage.Name("baseball"))
-                            image?.isTemplate = true
-                            button.image = image
-                            button.title = ""
-                        }
+                        AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                     }
                 }
         }
@@ -164,6 +144,7 @@ struct ContentView: View {
                     .multilineTextAlignment(.center)
                     .font(.headline)
                     .padding(.bottom, 8)
+                    .opacity(0.7)
                 Text("오늘 \(teamNames[viewModel.selectedTeam] ?? viewModel.selectedTeam) 경기는 취소되었습니다.")          .multilineTextAlignment(.center)
                     .font(.subheadline)
                     .padding()
@@ -172,12 +153,7 @@ struct ContentView: View {
             .frame(width: 200)
             .onAppear {
                     DispatchQueue.main.async {
-                        if let button = AppDelegate.instance?.statusBarItem.button {
-                            let image = NSImage(named: NSImage.Name("baseball"))
-                            image?.isTemplate = true
-                            button.image = image
-                            button.title = ""
-                        }
+                        AppDelegate.instance?.updateStatusBarWithBaseballIcon()
                     }
                 }
         }

@@ -15,9 +15,13 @@ class EventModel: ObservableObject {
 }
 
 class ApplicationMenu: NSObject {
+    static let shared = ApplicationMenu()
+    var scoreboardSubmenu: NSMenu?
+    
     let menu = NSMenu()
     private var settingsWindow: NSWindow?
     @ObservedObject var gameState = GameStateModel.shared
+    private let fetcher = GameIDFetcher()
     
     func createMenu() -> NSMenu {
         let mainView = ContentView(viewModel: SettingViewModel.shared)
@@ -30,12 +34,6 @@ class ApplicationMenu: NSObject {
         menu.addItem(customMenuItem)
         menu.addItem(NSMenuItem.separator())
         
-//        let aboutMenuItem = NSMenuItem(title: "KBOPeeker에 대하여",
-//                                       action: #selector(about),
-//                                       keyEquivalent: "")
-//        aboutMenuItem.target = self
-//        menu.addItem(aboutMenuItem)
-//
         let getGameIDItem = NSMenuItem(title: "경기 찾기",
                                        action: #selector(getGameID),
                                        keyEquivalent: "")
@@ -49,6 +47,18 @@ class ApplicationMenu: NSObject {
         webLinkMenuItem.target = self
         webLinkMenuItem.representedObject = UserDefaults.standard.string(forKey: "gameURL") ?? "https://sports.daum.net/schedule/kbo"
         menu.addItem(webLinkMenuItem)
+        
+        let scoreboardMenuItem = NSMenuItem(title: "스코어보드",
+                                            action: nil,
+                                            keyEquivalent: "")
+        scoreboardMenuItem.target = self
+        let scoreboardSubmenu = NSMenu(title: "스코어보드")
+        self.scoreboardSubmenu = scoreboardSubmenu
+        scoreboardMenuItem.submenu = scoreboardSubmenu
+        scoreboardMenuItem.representedObject = "https://sports.daum.net/schedule/kbo"
+        menu.addItem(scoreboardMenuItem)
+
+        updateScoreboardMenu(scoreboardSubmenu)
         
         let settingsMenuItem = NSMenuItem(title: "설정",
                                        action: #selector(openSettings),
@@ -65,16 +75,86 @@ class ApplicationMenu: NSObject {
         return menu
     }
     
-    @objc func about(sender: NSMenuItem) {
-        let options: [NSApplication.AboutPanelOptionKey: Any] = [
-                .applicationName: "KBOPeeker",
-                .applicationVersion: "1.0",
-                .version: "1",
-                .applicationIcon: NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName)!,
-            ]
+    func updateScoreboardMenu(_ menu: NSMenu) {
+        print("🟡 updateScoreboardMenu 호출됨")
+        fetcher.fetchScoreboard { lines in
+            print("🟢 fetchScoreboard completion 호출됨. lines count: \(lines.count)")
+            DispatchQueue.main.async {
+                print("🔵 DispatchQueue.main 안으로 진입")
+                menu.removeAllItems()
+                for line in lines {
+                    print("⚪️ 처리 중인 라인: \(line)")
+                    let parts = line.components(separatedBy: "|")
+                    if parts.count == 5 {
+                        let away = parts[0]
+                        let scoreAway = parts[1]
+                        let scoreHome = parts[2]
+                        let home = parts[3]
+                        let state = parts[4]
 
-        NSApp.orderFrontStandardAboutPanel(options: options)
-        NSApp.activate(ignoringOtherApps: true)
+                        let title = "\(away) \(scoreAway) : \(scoreHome) \(home)"
+
+                        let item = NSMenuItem()
+                        let stack = NSStackView()
+                        stack.translatesAutoresizingMaskIntoConstraints = false
+                        stack.setContentHuggingPriority(.defaultLow, for: .horizontal)
+                        stack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                        stack.orientation = .horizontal
+                        stack.spacing = 6
+                        stack.alignment = .centerY
+
+                        if let awayLogo = NSImage(named: away) {
+                            let imageView = NSImageView(image: awayLogo)
+                            imageView.translatesAutoresizingMaskIntoConstraints = false
+                            imageView.widthAnchor.constraint(equalToConstant: 15).isActive = true
+                            imageView.heightAnchor.constraint(equalToConstant: 15).isActive = true
+                            imageView.setContentHuggingPriority(.required, for: .horizontal)
+                            imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+                            stack.addArrangedSubview(imageView)
+                        }
+
+                        let label = NSTextField(labelWithString: title)
+                        label.alignment = .center
+                        stack.addArrangedSubview(label)
+
+                        if let homeLogo = NSImage(named: home) {
+                            let imageView = NSImageView(image: homeLogo)
+                            imageView.translatesAutoresizingMaskIntoConstraints = false
+                            imageView.widthAnchor.constraint(equalToConstant: 15).isActive = true
+                            imageView.heightAnchor.constraint(equalToConstant: 15).isActive = true
+                            imageView.setContentHuggingPriority(.required, for: .horizontal)
+                            imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+                            stack.addArrangedSubview(imageView)
+                        }
+
+                        let containerStack = NSStackView()
+                        containerStack.orientation = .vertical
+                        containerStack.alignment = .centerX
+                        containerStack.translatesAutoresizingMaskIntoConstraints = false
+                        containerStack.edgeInsets = NSEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+                        containerStack.addArrangedSubview(stack)
+
+                        let borderedView = NSView()
+                        borderedView.wantsLayer = true
+                        borderedView.translatesAutoresizingMaskIntoConstraints = false
+
+                        borderedView.addSubview(containerStack)
+                        containerStack.leadingAnchor.constraint(equalTo: borderedView.leadingAnchor).isActive = true
+                        containerStack.trailingAnchor.constraint(equalTo: borderedView.trailingAnchor).isActive = true
+                        containerStack.topAnchor.constraint(equalTo: borderedView.topAnchor).isActive = true
+                        containerStack.bottomAnchor.constraint(equalTo: borderedView.bottomAnchor).isActive = true
+                        borderedView.widthAnchor.constraint(greaterThanOrEqualToConstant: 145).isActive = true
+
+                        borderedView.addGestureRecognizer(NSClickGestureRecognizer(target: self, action: #selector(self.openScoreboardLink)))
+                        item.view = borderedView
+                        menu.addItem(item)
+                    } else {
+                        print("🔴 형식이 맞지 않는 라인: \(line)")
+                        menu.addItem(NSMenuItem(title: line, action: nil, keyEquivalent: ""))
+                    }
+                }
+            }
+        }
     }
     
     @objc func getGameID(sender: NSMenuItem) {
@@ -133,5 +213,10 @@ class ApplicationMenu: NSObject {
     
     @objc func quit(sender: NSMenuItem) {
         NSApp.terminate(self)
+    }
+    
+    @objc func openScoreboardLink() {
+        guard let url = URL(string: "https://sports.daum.net/schedule/kbo") else { return }
+        NSWorkspace.shared.open(url)
     }
 }
